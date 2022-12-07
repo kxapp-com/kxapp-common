@@ -1,4 +1,4 @@
-package crypto
+package cryptoz
 
 import (
 	"crypto/rc4"
