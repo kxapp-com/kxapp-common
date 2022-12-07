@@ -17,14 +17,14 @@ urls包括多个接口服务器地址，循环请求，直到有一个成功
 返回的结果如果不是json，则返回解码错误的信息,如果是json，但是json内status不是0，则返回json内的错误提示作为error的消息
 否则返回json的data字段作为any
 */
-func CallAuApiService(urls []string, funcName string, params map[string]any) (any, error) {
+func CallAuApiService(urls []string, funcName string, params map[string]any, encodePassword string, decodePassword string) (any, error) {
 	params["tm"] = time.Now().UnixMilli()
 	jsonBytes, e1 := json.Marshal(params)
 	if e1 != nil {
 		return nil, e1
 	}
 	fmt.Printf("request data %v \n", string(jsonBytes))
-	basedParams := cryptoz.EncryptAndEncode(jsonBytes, "text/plain, */*")
+	basedParams := cryptoz.EncryptAndEncode(jsonBytes, encodePassword)
 	formdata := make(url.Values)
 	formdata["func"] = []string{funcName}
 	formdata["data"] = []string{basedParams}
@@ -48,7 +48,7 @@ func CallAuApiService(urls []string, funcName string, params map[string]any) (an
 	if e4 != nil {
 		return nil, e4
 	}
-	bodyData, e5 := cryptoz.DecodeAndDecrypt(string(responseData), "application/json,")
+	bodyData, e5 := cryptoz.DecodeAndDecrypt(string(responseData), decodePassword)
 	if e5 != nil {
 		return nil, errors.New(string(responseData))
 	}
