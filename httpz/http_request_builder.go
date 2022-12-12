@@ -165,10 +165,7 @@ func (builder *HttpRequestBuilder) Request(httpClient *http.Client) *HttpRespons
 		if e != nil {
 			log.Error("request header error %v", e)
 		}
-		b := request.Header.Get("scnt") == "AAAA-jhEMkUyNzQyRkQ5RDY4RUEwMEUyNzQyMjBDNjY1Q0M3OTZGN0U1RTkwNEFDMzMwNTI4NEVFMENFM0JGRUFDNDlGNEUzM0U5MDA3QUY3RDE4MzkyN0NFRjEzNEMwMTkyRkZEQjA5NUEzRDMwRjIxODkzRTdEQjZFRjI2NTBEM0U0MDk4NzU4QTU5NDEyNTQ1NkM4RDQ0NDVEMzk2QUNFMkNERjg0OTQ2NDAxQkY2QjE3NDVDREQyMDY1NDlCQ0Y5MkQwRjIwRDNEOUQ2RjIwQzFGRTNFRkU5OUI2MTM0NUMzQjM5OUM1NDVEREM0Q0FCN3wxAAABhOraKFyZV7hqPGvMsUnGVIOws4bzm5fkTKtPS971pkOiwhRQhX5Xzwsp_SHyAAggu_p2IIWNKnCyMeAWSixB3cahYCRsLKeB7ccNLHN9jx3zGI_HTw"
-		v := request.Header.Get("X-Apple-ID-Session-Id") == "8D2E2742FD9D68EA00E274220C665CC796F7E5E904AC3305284EE0CE3BFEAC49F4E33E9007AF7D183927CEF134C0192FFDB095A3D30F21893E7DB6EF2650D3E4098758A594125456C8D4445D396ACE2CDF84946401BF6B1745CDD206549BCF92D0F20D3D9D6F20C1FE3EFE99B61345C3B399C545DDC4CAB7"
-		log.Printf("scnt %v   session %v\n", b, v)
-		log.Debugf("\n request--------------- %s %s \n request headers:%s\n", request.Method, request.URL, string(headers))
+		log.Debugf("\n request--------------- %s %s \n request headers:%s", request.Method, request.URL, string(headers))
 		if builder.body != nil {
 			if b, ok := builder.body.([]byte); ok {
 				log.Debugf("Body %s\n", string(b))
@@ -185,7 +182,7 @@ func (builder *HttpRequestBuilder) Request(httpClient *http.Client) *HttpRespons
 		return &HttpResponse{Error: httpError}
 	}
 	if PrintDebug && response != nil {
-		log.Debugf("response status %v  headers:%v\n", response.StatusCode, response.Header)
+		log.Debugf("response status %v  headers:\n%v\n", response.StatusCode, response.Header)
 	}
 	if response.Body != nil {
 		defer response.Body.Close()

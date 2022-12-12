@@ -2,11 +2,15 @@ package cookiejar
 
 import (
 	"crypto/tls"
+	"github.com/kxapp-com/kxapp-common/utilz"
+
 	"net/http"
 	"testing"
 )
 
 func TestEncodeCookies(t *testing.T) {
+
+	utilz.IsInArray[string]("zhang", []string{"li"})
 	jar, _ := New(nil)
 	client := &http.Client{
 		Jar: jar,

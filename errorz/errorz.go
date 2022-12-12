@@ -13,6 +13,7 @@ const (
 	StatusInternalError  = 6002
 	StatusParamError     = 6003
 	StatusIOError        = 6004
+	StatusExpiredError   = 6005
 	StatusSuccess        = 0
 )
 const StatusNameSuccess = "success"
@@ -34,6 +35,8 @@ func StatusText(code int) string {
 		return "StatusParamError"
 	case StatusIOError:
 		return "StatusIOError"
+	case StatusExpiredError:
+		return "StatusExpiredError"
 	case StatusSuccess:
 		return "success"
 	default:
