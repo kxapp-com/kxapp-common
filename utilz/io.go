@@ -1,14 +1,17 @@
 package utilz
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/gob"
 	"encoding/json"
 	"errors"
 	"github.com/kxapp-com/kxapp-common/cryptoz"
+	"strings"
+
+	//"github.com/kxapp-com/kxapp-common/cryptoz"
 	"howett.net/plist"
 	"io"
-	"net"
 	"os"
 	"path/filepath"
 )
@@ -104,24 +107,39 @@ func ReadFileData(path string, start, length int) ([]byte, error) {
 	}
 }
 
-func GetOneMacAddress() string {
-	is, e := net.Interfaces()
-	if e != nil {
-		return ""
-	}
-	for _, i := range is {
-		mac := i.HardwareAddr.String()
-		if mac != "" {
-			return mac
-		}
-	}
-	return ""
-}
-
 func ParseMapToObject[T any](mp map[string]any) (*T, error) {
 	bt, e1 := json.Marshal(mp)
 	if e1 != nil {
 		return nil, e1
 	}
 	return ParseJsonAs[T](bt)
+}
+func ReadPropertiesFile(filename string) (map[string]string, error) {
+	file, err := os.Open(filename)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+	return ParsePropertiesFile(file)
+}
+func ParsePropertiesFile(readerPropertes io.Reader) (map[string]string, error) {
+	var result = map[string]string{}
+	reader := bufio.NewReader(readerPropertes)
+	for {
+		line, e := reader.ReadString('\n')
+		if line != "" {
+			line = strings.TrimSpace(line)
+			if strings.HasPrefix(line, "#") || strings.HasPrefix(line, "!") {
+				continue
+			}
+			parts := strings.SplitN(line, "=", 2)
+			if len(parts) == 2 {
+				result[strings.TrimSpace(parts[0])] = strings.TrimSpace(parts[1])
+			}
+		}
+		if e != nil {
+			break
+		}
+	}
+	return result, nil
 }
