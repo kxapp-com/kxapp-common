@@ -114,6 +114,12 @@ func ParseMapToObject[T any](mp map[string]any) (*T, error) {
 	}
 	return ParseJsonAs[T](bt)
 }
+
+/*
+*
+读取配置文件.properties内容，配置文件可以用#!开头表示注释，用=表示键值对
+增强的可以用\=表示key,value里面有=号字符
+*/
 func ReadPropertiesFile(filename string) (map[string]string, error) {
 	file, err := os.Open(filename)
 	if err != nil {
@@ -122,7 +128,14 @@ func ReadPropertiesFile(filename string) (map[string]string, error) {
 	defer file.Close()
 	return ParsePropertiesFile(file)
 }
+
+/*
+*
+读取配置文件.properties内容，配置文件可以用#!开头表示注释，用=表示键值对
+增强的可以用\=表示key,value里面有=号字符
+*/
 func ParsePropertiesFile(readerPropertes io.Reader) (map[string]string, error) {
+	const tp = "12e428c4-9902-42f9-8dad-d5c8dbeae091"
 	var result = map[string]string{}
 	reader := bufio.NewReader(readerPropertes)
 	for {
@@ -132,8 +145,11 @@ func ParsePropertiesFile(readerPropertes io.Reader) (map[string]string, error) {
 			if strings.HasPrefix(line, "#") || strings.HasPrefix(line, "!") {
 				continue
 			}
+			line = strings.ReplaceAll(line, "\\=", tp) //利用uuid基本不会重复的特点可以随便替换字符串再替换回去
 			parts := strings.SplitN(line, "=", 2)
 			if len(parts) == 2 {
+				parts[0] = strings.ReplaceAll(parts[0], tp, "=")
+				parts[1] = strings.ReplaceAll(parts[1], tp, "=")
 				result[strings.TrimSpace(parts[0])] = strings.TrimSpace(parts[1])
 			}
 		}
