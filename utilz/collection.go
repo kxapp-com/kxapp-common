@@ -1,5 +1,7 @@
 package utilz
 
+import "errors"
+
 /*
 *
 系统基本的数字类型,做泛型编程，经常会要用到基本类型做类型约束，所以定义了这个基本类型
@@ -41,4 +43,17 @@ func MapMerge(mp ...map[string]string) map[string]string {
 		}
 	}
 	return m2
+}
+func GetMapValue(v map[string]any, path ...string) (any, error) {
+	if len(path) == 0 {
+		return v, nil
+	}
+	ok := false
+	for i := 0; i < len(path)-1; i++ {
+		v, ok = v[path[i]].(map[string]any)
+		if !ok {
+			return nil, errors.New(path[i] + " fail")
+		}
+	}
+	return v[path[len(path)-1]], nil
 }

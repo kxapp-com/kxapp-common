@@ -21,6 +21,7 @@ const ContentType_JSON = "application/json"
 const ContentType_Plist = "text/x-xml-plist"
 const ContentType_Form_URL = "application/x-www-form-urlencoded"
 const ContentType_VND_JSON = "application/vnd.api+json"
+const AcceptType_JSON = "application/json, text/plain, */*"
 
 /*
 http请求过程中发生了网络错误，各种网络错误都归为状态码604
