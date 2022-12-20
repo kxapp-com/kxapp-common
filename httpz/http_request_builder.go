@@ -137,7 +137,11 @@ func (builder *HttpRequestBuilder) BuildRequest() *http.Request {
 		}
 	}
 
-	request, _ := http.NewRequest(builder.method, builder.url, reader)
+	request, e := http.NewRequest(builder.method, builder.url, reader)
+	if e != nil {
+		log.Error(e)
+		return nil
+	}
 	for k, v := range builder.headers {
 		k = strings.ReplaceAll(k, "\n", "")
 		v = strings.ReplaceAll(v, "\n", "")
