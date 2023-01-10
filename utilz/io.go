@@ -8,6 +8,7 @@ import (
 	"errors"
 	"github.com/kxapp-com/kxapp-common/cryptoz"
 	_ "github.com/kxapp-com/kxapp-common/cryptoz"
+	"io/fs"
 	"strings"
 
 	//"github.com/kxapp-com/kxapp-common/cryptoz"
@@ -26,12 +27,12 @@ func WriteToJsonFileSec(path string, obj any, password string) error {
 		return e2
 	}
 	if !PathExists(filepath.Dir(path)) {
-		os.MkdirAll(filepath.Dir(path), 0666)
+		os.MkdirAll(filepath.Dir(path), fs.ModePerm)
 	}
 	if password != "" {
 		data = cryptoz.RC4Crypto(data, password)
 	}
-	return os.WriteFile(path, data, 0666)
+	return os.WriteFile(path, data, fs.ModePerm)
 }
 func ReadFromJsonFile[T any](path string) (*T, error) {
 	return ReadFromJsonFileSec[T](path, "")
