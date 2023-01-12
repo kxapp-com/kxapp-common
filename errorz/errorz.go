@@ -26,7 +26,7 @@ func StatusText(code int) string {
 	}
 	switch code {
 	case StatusNetworkError:
-		return "NewNetworkError"
+		return "NetworkError"
 	case StatusInternalError:
 		return "InternalError"
 	case StatusParseDataError:
@@ -38,7 +38,7 @@ func StatusText(code int) string {
 	case StatusExpiredError:
 		return "StatusExpiredError"
 	case StatusSuccess:
-		return "success"
+		return StatusNameSuccess
 	default:
 		return "UnknownError"
 	}
