@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
+	"errors"
 	"io"
 	//"log"
 	"net/http"
@@ -182,9 +183,9 @@ func (builder *HttpRequestBuilder) Request(httpClient *http.Client) *HttpRespons
 	response, httpError := httpClient.Do(request)
 	if response == nil || httpError != nil {
 		if PrintDebug {
-			log.Debugf("response nil error %v  \n", httpError)
+			log.Infof("http request error %v  \n", httpError)
 		}
-		return &HttpResponse{Error: httpError}
+		return &HttpResponse{Error: errors.New("NetworkError")}
 	}
 	if PrintDebug && response != nil {
 		log.Debugf("response status %v  headers:\n%v\n", response.StatusCode, response.Header)
