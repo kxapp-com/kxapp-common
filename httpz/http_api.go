@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/kxapp-com/kxapp-common/cryptoz"
-	"io"
 	"net"
 	"net/http"
 	"net/url"
@@ -30,25 +29,40 @@ func CallAuApiService(urls []string, funcName string, params map[string]any, enc
 	formdata["func"] = []string{funcName}
 	formdata["data"] = []string{basedParams}
 
-	httpClient := http.DefaultClient
-	var resp *http.Response
-	var e3 error
+	httpClient := NewHttpClient(nil)
+	var resp2 *HttpResponse
 	for _, ur := range urls {
-		resp, e3 = httpClient.PostForm(ur, formdata)
-		if resp != nil {
-			defer resp.Body.Close()
-		}
-		if e3 == nil {
+
+		resp2 = NewHttpRequestBuilder(http.MethodPost, ur).ContentType("application/x-www-form-urlencoded").AddBody(formdata).Request(httpClient)
+		if !resp2.HasError() {
 			break
 		}
 	}
-	if e3 != nil {
-		return nil, e3
+	if resp2.HasError() {
+		return nil, resp2.Error
 	}
-	responseData, e4 := io.ReadAll(resp.Body)
-	if e4 != nil {
-		return nil, e4
-	}
+	responseData := resp2.Body
+
+	/*
+		httpClient := http.DefaultClient
+		var resp *http.Response
+		var e3 error
+		for _, ur := range urls {
+			resp, e3 = httpClient.PostForm(ur, formdata)
+			if resp != nil {
+				defer resp.Body.Close()
+			}
+			if e3 == nil {
+				break
+			}
+		}
+		if e3 != nil {
+			return nil, e3
+		}
+		responseData, e4 := io.ReadAll(resp.Body)
+		if e4 != nil {
+			return nil, e4
+		}*/
 	bodyData, e5 := cryptoz.DecodeAndDecrypt(string(responseData), decodePassword)
 	if e5 != nil {
 		return nil, errors.New(string(responseData))

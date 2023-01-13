@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"time"
+
 	//"log"
 	"net/http"
 	"net/url"
@@ -50,7 +52,8 @@ func NewHttpClient(jar http.CookieJar) *http.Client {
 	if ProxyServiceURL == "" {
 		//return http.DefaultClient
 		return &http.Client{
-			Jar: jar,
+			Timeout: 30 * time.Second,
+			Jar:     jar,
 			Transport: &http.Transport{
 				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 			},
@@ -61,7 +64,8 @@ func NewHttpClient(jar http.CookieJar) *http.Client {
 		log.Println(err)
 	}
 	return &http.Client{
-		Jar: jar,
+		Timeout: 30 * time.Second,
+		Jar:     jar,
 		Transport: &http.Transport{
 			Proxy:           http.ProxyURL(proxyURLUrl),
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
@@ -152,6 +156,7 @@ func (builder *HttpRequestBuilder) BuildRequest() *http.Request {
 	for _, cookie := range builder.cookies {
 		request.AddCookie(cookie)
 	}
+	request.Close = true
 	return request
 }
 
@@ -165,7 +170,6 @@ func (builder *HttpRequestBuilder) BeforeReturn(action func(response *http.Respo
 }
 func (builder *HttpRequestBuilder) Request(httpClient *http.Client) *HttpResponse {
 	request := builder.BuildRequest()
-
 	if PrintDebug {
 		headers, e := json.Marshal(request.Header)
 		if e != nil {
@@ -180,19 +184,24 @@ func (builder *HttpRequestBuilder) Request(httpClient *http.Client) *HttpRespons
 			}
 		}
 	}
+
 	response, httpError := httpClient.Do(request)
-	if response == nil || httpError != nil {
+	if response != nil && response.Body != nil {
+		defer response.Body.Close()
+	}
+	if httpError != nil {
 		if PrintDebug {
 			log.Infof("http request error %v  \n", httpError)
+		}
+		if e, ok := httpError.(*url.Error); ok {
+			return &HttpResponse{Error: e.Err}
 		}
 		return &HttpResponse{Error: errors.New("NetworkError")}
 	}
 	if PrintDebug && response != nil {
 		log.Debugf("response status %v  headers:\n%v\n", response.StatusCode, response.Header)
 	}
-	if response.Body != nil {
-		defer response.Body.Close()
-	}
+
 	if builder.afterAction != nil {
 		builder.afterAction(response)
 	}
