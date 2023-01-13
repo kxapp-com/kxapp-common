@@ -3,7 +3,6 @@ package httpz
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/kxapp-com/kxapp-common/cryptoz"
 	"net"
 	"net/http"
@@ -23,7 +22,7 @@ func CallAuApiService(urls []string, funcName string, params map[string]any, enc
 	if e1 != nil {
 		return nil, e1
 	}
-	fmt.Printf("request data %v \n", string(jsonBytes))
+	//fmt.Printf("request data %v \n", string(jsonBytes))
 	basedParams := cryptoz.EncryptAndEncode(jsonBytes, encodePassword)
 	formdata := make(url.Values)
 	formdata["func"] = []string{funcName}
