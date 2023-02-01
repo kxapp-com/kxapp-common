@@ -61,6 +61,9 @@ type StatusError struct {
 }
 
 func (e *StatusError) AsStatusResult() *StatusResult {
+	if e.Body == "" {
+		e.Body = StatusText(e.Status)
+	}
 	return &StatusResult{Status: e.Status, Body: e.Body, StatusName: StatusText(e.Status)}
 }
 func (e *StatusError) StatusName() string {
