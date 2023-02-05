@@ -2,24 +2,35 @@
 各个项目经常使用的共享的代码
 
 config git
-4. 修改如下文件添加配置,让go下载git项目的时候，私有项目是由direct ssh，代替http避免私有项目下载失败
-～\.gitconfig
 
-[user]
-	name = lilili87222
-	email = li_li_li87222@163.com
-[url "ssh://git@github.com/"]
-	insteadOf = https://github.com/
-	
+1. 修改如下文件添加配置,让go下载git项目的时候，私有项目是由direct ssh，代替http避免私有项目下载失败
+
+    ` ～\.gitconfig `
+
+2. gen key ,and copy content of ~/.ssh/id_rsa.pub to https://github.com/settings/keys
+    `ssh-keygen `
+
+3. add github config
+`
+	[user]
+		name = lilili87222
+		email = li_li_li87222@163.com
+	[url "ssh://git@github.com/"]
+		insteadOf = https://github.com/
+`
 go安装过程
-1.go.dev  download mac.pkg and double click install
+
+1. go.dev  download mac.pkg and double click install
 2. edit ~/.zprofile add go to path
+`
 PATH=$PATH:~/go/bin
 export PATH
-3.设置go环境变量
+`
+3. 设置go环境变量
+`
 GONOPROXY=github.com/kxapp-com/*
 GOPROXY="https://goproxy.cn,direct"
-
+`
 
 	
 	
