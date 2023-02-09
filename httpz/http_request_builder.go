@@ -52,7 +52,7 @@ func NewHttpClient(jar http.CookieJar) *http.Client {
 	if ProxyServiceURL == "" {
 		//return http.DefaultClient
 		return &http.Client{
-			Timeout: 45 * time.Second,
+			Timeout: 120 * time.Second,
 			Jar:     jar,
 			Transport: &http.Transport{
 				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
@@ -64,7 +64,7 @@ func NewHttpClient(jar http.CookieJar) *http.Client {
 		log.Println(err)
 	}
 	return &http.Client{
-		Timeout: 30 * time.Second,
+		Timeout: 120 * time.Second,
 		Jar:     jar,
 		Transport: &http.Transport{
 			Proxy:           http.ProxyURL(proxyURLUrl),
