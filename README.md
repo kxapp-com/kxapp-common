@@ -37,7 +37,9 @@ GOPROXY="https://goproxy.cn,direct"
 	
 	
 goland install
+
 1.download goland 2022.2,double click install
+
 2.edit /Applications/GoLand.app/Contents/bin/goland.vmoptions. add content
 ```
 -javaagent:/Users/admin/Downloads/crack_jetbra20220801/ja-netfilter.jar=jetbrains
