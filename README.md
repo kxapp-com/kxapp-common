@@ -28,8 +28,12 @@ export PATH
 ```
 3. 设置go环境变量
 ```
+go env -w 
+
+
 GONOPROXY=github.com/kxapp-com/*
 GOPROXY="https://goproxy.cn,direct"
+GOPRIVATE="github.com/kxapp-com/**"
 ```
 
 	
