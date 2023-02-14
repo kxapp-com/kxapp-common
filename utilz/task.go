@@ -16,14 +16,20 @@ type TaskWorkCrash[T any] struct {
 
 /*
 任务工厂，对数据datas，每个数据需要进行task处理。分配workcount个工人（go程）进行并行工作
-workCount 设置0表示使用len(datas)个工人，设置-1表示有多少个cpu内核就多少个工人，如果工人数超过datas的size，则工人数会设置为datas的size
-返回的是错误数组，如果在执行任务过程中产生了奔溃错误，例如空指针错误，且在任务函数内没处理，则会在taskwork中recovery，避免整个程序奔溃，并且错误会放在返回结果中
+workCount 设置0表示使用len(datas)个工人，设置-1表示有多少个cpu内核就多少个工人，如果工人数超过datas的size，则工人数会设置为datas的size.
+返回的错误数组，如果在执行任务过程中产生了奔溃错误，例如空指针错误，且在任务函数内没处理，则会在taskwork中recovery，避免整个程序奔溃，并且错误会放在返回结果中
 */
 func TaskWork[T any](datas []T, task func(workId int, data T), workCount int) []*TaskWorkCrash[T] {
 	var errList []*TaskWorkCrash[T]
 	size := len(datas)
 	if size == 0 {
 		return errList
+	}
+	if workCount < 0 {
+		workCount = runtime.NumCPU()
+	}
+	if workCount == 0 || workCount > size {
+		workCount = size
 	}
 	var waiter sync.WaitGroup
 	waiter.Add(size)
@@ -60,12 +66,6 @@ func TaskWork[T any](datas []T, task func(workId int, data T), workCount int) []
 	}
 	go writer()
 
-	if workCount < 0 {
-		workCount = runtime.NumCPU()
-	}
-	if workCount == 0 || workCount > size {
-		workCount = size
-	}
 	for i := 0; i < workCount; i++ {
 		go reader(i)
 	}
