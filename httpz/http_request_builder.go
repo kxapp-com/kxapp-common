@@ -30,7 +30,7 @@ const AcceptType_JSON = "application/json, text/plain, */*"
 http请求过程中发生了网络错误，各种网络错误都归为状态码604
 */
 
-var ProxyServiceURL = ""
+// var ProxyServiceURL = ""
 var PrintDebug = true
 
 /*
@@ -46,31 +46,39 @@ type HttpResponse struct {
 func (response *HttpResponse) HasError() bool {
 	return response.Error != nil
 }
+func NewHttpClient(jar http.CookieJar) *http.Client {
+	tra := http.DefaultTransport
+	return &http.Client{
+		Timeout:   180 * time.Second,
+		Jar:       jar,
+		Transport: tra,
+	}
+}
 
 // func NewHttpClient(jar http.CookieJar, proxyURL string) *http.Client {
-func NewHttpClient(jar http.CookieJar) *http.Client {
-	if ProxyServiceURL == "" {
-		//return http.DefaultClient
-		return &http.Client{
-			Timeout: 120 * time.Second,
-			Jar:     jar,
-			Transport: &http.Transport{
-				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-			},
-		}
-	}
-	proxyURLUrl, err := url.Parse(ProxyServiceURL)
-	if err != nil {
-		log.Println(err)
-	}
+func NewHttpClient1(jar http.CookieJar) *http.Client {
+	//if ProxyServiceURL == "" {
+	//return http.DefaultClient
 	return &http.Client{
-		Timeout: 120 * time.Second,
+		Timeout: 180 * time.Second,
 		Jar:     jar,
 		Transport: &http.Transport{
-			Proxy:           http.ProxyURL(proxyURLUrl),
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		},
 	}
+	//}
+	//proxyURLUrl, err := url.Parse(ProxyServiceURL)
+	//if err != nil {
+	//	log.Println(err)
+	//}
+	//return &http.Client{
+	//	Timeout: 120 * time.Second,
+	//	Jar:     jar,
+	//	Transport: &http.Transport{
+	//		Proxy:           http.ProxyURL(proxyURLUrl),
+	//		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	//	},
+	//}
 }
 
 type HttpRequestBuilder struct {
@@ -148,8 +156,10 @@ func (builder *HttpRequestBuilder) BuildRequest() *http.Request {
 		return nil
 	}
 	for k, v := range builder.headers {
-		k = strings.ReplaceAll(k, "\n", "")
-		v = strings.ReplaceAll(v, "\n", "")
+		//k = strings.ReplaceAll(k, "\n", "")
+		//	v = strings.ReplaceAll(v, "\n", "")
+		k = strings.TrimSpace(k)
+		v = strings.TrimSpace(v)
 		request.Header.Add(k, v)
 		//request.Header.Set(k, v)
 	}
