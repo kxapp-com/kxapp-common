@@ -5,7 +5,11 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"errors"
+	"golang.org/x/net/context"
 	"io"
+	"net"
+	"time"
+
 	//"log"
 	"net/http"
 	"net/url"
@@ -44,12 +48,28 @@ type HttpResponse struct {
 func (response *HttpResponse) HasError() bool {
 	return response.Error != nil
 }
+func defaultTransportDialContext(dialer *net.Dialer) func(context.Context, string, string) (net.Conn, error) {
+	return dialer.DialContext
+}
 func NewHttpClient(jar http.CookieJar) *http.Client {
-	tra := http.DefaultTransport
+	tra2 := &http.Transport{
+		Proxy: http.ProxyFromEnvironment,
+		DialContext: defaultTransportDialContext(&net.Dialer{
+			Timeout:   30 * time.Second,
+			KeepAlive: 30 * time.Second,
+		}),
+		ForceAttemptHTTP2:     true,
+		MaxIdleConns:          100,
+		IdleConnTimeout:       90 * time.Second,
+		TLSHandshakeTimeout:   30 * time.Second,
+		ExpectContinueTimeout: 1 * time.Second,
+		TLSClientConfig:       &tls.Config{InsecureSkipVerify: true},
+	}
+	//tra := http.DefaultTransport
 	return &http.Client{
 		//Timeout:   180 * time.Second,
 		Jar:       jar,
-		Transport: tra,
+		Transport: tra2,
 	}
 }
 
