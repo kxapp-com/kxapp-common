@@ -6,8 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
-	"time"
-
 	//"log"
 	"net/http"
 	"net/url"
@@ -49,7 +47,7 @@ func (response *HttpResponse) HasError() bool {
 func NewHttpClient(jar http.CookieJar) *http.Client {
 	tra := http.DefaultTransport
 	return &http.Client{
-		Timeout:   180 * time.Second,
+		//Timeout:   180 * time.Second,
 		Jar:       jar,
 		Transport: tra,
 	}
@@ -60,8 +58,8 @@ func NewHttpClient1(jar http.CookieJar) *http.Client {
 	//if ProxyServiceURL == "" {
 	//return http.DefaultClient
 	return &http.Client{
-		Timeout: 180 * time.Second,
-		Jar:     jar,
+		//Timeout: 180 * time.Second,
+		Jar: jar,
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		},
