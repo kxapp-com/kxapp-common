@@ -40,14 +40,25 @@ var PrintDebug = true
 返回结果类，未对数据进行解码，是[]byte类型
 */
 type HttpResponse struct {
-	Status int
-	Body   []byte
-	Header http.Header
-	Error  error //error类型是网络请求之类，io读取之类的错误，不包含逻辑错误
+	Status         int
+	Body           []byte
+	Header         http.Header
+	Error          error //error类型是网络请求之类，io读取之类的错误，不包含逻辑错误
+	responseClosed *http.Response
 }
 
 func (response *HttpResponse) HasError() bool {
 	return response.Error != nil
+}
+func (response *HttpResponse) Cookie(name string) string {
+	if !response.HasError() {
+		for _, cookie := range response.responseClosed.Cookies() {
+			if cookie.Name == name {
+				return cookie.Value
+			}
+		}
+	}
+	return ""
 }
 func defaultTransportDialContext(dialer *net.Dialer) func(context.Context, string, string) (net.Conn, error) {
 	return dialer.DialContext
@@ -228,9 +239,9 @@ func (builder *HttpRequestBuilder) Request(httpClient *http.Client) *HttpRespons
 			log.Infof("http request error %v  \n", httpError)
 		}
 		if e, ok := httpError.(*url.Error); ok {
-			return &HttpResponse{Error: e.Err}
+			return &HttpResponse{Error: e.Err, responseClosed: response}
 		}
-		return &HttpResponse{Error: errors.New("NetworkError")}
+		return &HttpResponse{Error: errors.New("NetworkError"), responseClosed: response}
 	}
 	if PrintDebug && response != nil {
 		log.Debugf("response status %v  headers:\n%v\n", response.StatusCode, response.Header)
@@ -239,17 +250,16 @@ func (builder *HttpRequestBuilder) Request(httpClient *http.Client) *HttpRespons
 	if builder.afterAction != nil {
 		builder.afterAction(response)
 	}
-
 	if response.Body == nil {
-		return &HttpResponse{Status: response.StatusCode, Header: response.Header}
+		return &HttpResponse{Status: response.StatusCode, Header: response.Header, responseClosed: response}
 	} else {
 		body, ioReadError := io.ReadAll(response.Body)
 		if PrintDebug {
 			log.Debugf("Body %v \n", string(body))
 		}
 		if ioReadError != nil {
-			return &HttpResponse{Error: ioReadError, Header: response.Header}
+			return &HttpResponse{Error: ioReadError, Header: response.Header, responseClosed: response}
 		}
-		return &HttpResponse{Status: response.StatusCode, Body: body, Header: response.Header}
+		return &HttpResponse{Status: response.StatusCode, Body: body, Header: response.Header, responseClosed: response}
 	}
 }
