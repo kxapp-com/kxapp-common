@@ -42,6 +42,7 @@ var PrintDebug = true
 type HttpResponse struct {
 	Status int
 	Body   []byte
+	Header http.Header
 	Error  error //error类型是网络请求之类，io读取之类的错误，不包含逻辑错误
 }
 
@@ -240,15 +241,15 @@ func (builder *HttpRequestBuilder) Request(httpClient *http.Client) *HttpRespons
 	}
 
 	if response.Body == nil {
-		return &HttpResponse{Status: response.StatusCode}
+		return &HttpResponse{Status: response.StatusCode, Header: response.Header}
 	} else {
 		body, ioReadError := io.ReadAll(response.Body)
 		if PrintDebug {
 			log.Debugf("Body %v \n", string(body))
 		}
 		if ioReadError != nil {
-			return &HttpResponse{Error: ioReadError}
+			return &HttpResponse{Error: ioReadError, Header: response.Header}
 		}
-		return &HttpResponse{Status: response.StatusCode, Body: body}
+		return &HttpResponse{Status: response.StatusCode, Body: body, Header: response.Header}
 	}
 }
