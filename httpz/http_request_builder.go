@@ -218,7 +218,7 @@ func (builder *HttpRequestBuilder) Request(httpClient *http.Client) *HttpRespons
 		log.Debugf("\n request--------------- %s %s \n request headers:%s", request.Method, request.URL, string(headers))
 		if builder.body != nil {
 			if b, ok := builder.body.([]byte); ok {
-				if len(b) < 256 {
+				if len(b) < 1024 {
 					log.Debugf("Body %s\n", string(b))
 				} else {
 					log.Debugf("Body size >256 ,log ignore \n")
