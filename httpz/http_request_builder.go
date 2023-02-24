@@ -8,6 +8,7 @@ import (
 	"golang.org/x/net/context"
 	"io"
 	"net"
+	"regexp"
 	"time"
 
 	//"log"
@@ -50,15 +51,21 @@ type HttpResponse struct {
 func (response *HttpResponse) HasError() bool {
 	return response.Error != nil
 }
-func (response *HttpResponse) Cookie(name string) string {
+func (response *HttpResponse) Cookie(name string, reg bool) *http.Cookie {
 	if !response.HasError() {
 		for _, cookie := range response.responseClosed.Cookies() {
-			if cookie.Name == name {
-				return cookie.Value
+			if !reg {
+				if name == cookie.Name {
+					return cookie
+				}
+			} else {
+				if mt, e := regexp.MatchString(name, cookie.Name); e == nil && mt {
+					return cookie
+				}
 			}
 		}
 	}
-	return ""
+	return nil
 }
 func defaultTransportDialContext(dialer *net.Dialer) func(context.Context, string, string) (net.Conn, error) {
 	return dialer.DialContext
