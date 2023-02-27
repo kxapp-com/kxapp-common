@@ -8,6 +8,7 @@ import (
 	"golang.org/x/net/context"
 	"io"
 	"net"
+	"net/http/cookiejar"
 	"regexp"
 	"time"
 
@@ -51,6 +52,13 @@ type HttpResponse struct {
 func (response *HttpResponse) HasError() bool {
 	return response.Error != nil
 }
+func (response *HttpResponse) CookieValue(name string) string {
+	c := response.Cookie(name, false)
+	if c != nil {
+		return c.Value
+	}
+	return ""
+}
 func (response *HttpResponse) Cookie(name string, reg bool) *http.Cookie {
 	if !response.HasError() {
 		for _, cookie := range response.responseClosed.Cookies() {
@@ -71,6 +79,9 @@ func defaultTransportDialContext(dialer *net.Dialer) func(context.Context, strin
 	return dialer.DialContext
 }
 func NewHttpClient(jar http.CookieJar) *http.Client {
+	if jar == nil {
+		jar, _ = cookiejar.New(nil)
+	}
 	tra2 := &http.Transport{
 		Proxy: http.ProxyFromEnvironment,
 		DialContext: defaultTransportDialContext(&net.Dialer{
@@ -81,7 +92,7 @@ func NewHttpClient(jar http.CookieJar) *http.Client {
 		MaxIdleConns:          100,
 		IdleConnTimeout:       90 * time.Second,
 		TLSHandshakeTimeout:   30 * time.Second,
-		ExpectContinueTimeout: 1 * time.Second,
+		ExpectContinueTimeout: 10 * time.Second,
 		TLSClientConfig:       &tls.Config{InsecureSkipVerify: true},
 	}
 	//tra := http.DefaultTransport
@@ -203,7 +214,7 @@ func (builder *HttpRequestBuilder) BuildRequest() *http.Request {
 	for _, cookie := range builder.cookies {
 		request.AddCookie(cookie)
 	}
-	request.Close = true
+	//request.Close = true
 	return request
 }
 
@@ -218,6 +229,7 @@ func (builder *HttpRequestBuilder) BeforeReturn(action func(response *http.Respo
 func (builder *HttpRequestBuilder) Request(httpClient *http.Client) *HttpResponse {
 	request := builder.BuildRequest()
 	if PrintDebug {
+
 		headers, e := json.Marshal(request.Header)
 		if e != nil {
 			log.Error("request header error %v", e)
@@ -228,7 +240,7 @@ func (builder *HttpRequestBuilder) Request(httpClient *http.Client) *HttpRespons
 				if len(b) < 1024 {
 					log.Debugf("Body %s\n", string(b))
 				} else {
-					log.Debugf("Body size >256 ,log ignore \n")
+					log.Debugf("Body size >1024 ,log ignore \n")
 				}
 
 			} else {
@@ -238,13 +250,8 @@ func (builder *HttpRequestBuilder) Request(httpClient *http.Client) *HttpRespons
 	}
 
 	response, httpError := httpClient.Do(request)
-	if response != nil && response.Body != nil {
-		defer response.Body.Close()
-	}
 	if httpError != nil {
-		if PrintDebug {
-			log.Infof("http request error %v  \n", httpError)
-		}
+		log.Error("http request error %v  \n", httpError)
 		if e, ok := httpError.(*url.Error); ok {
 			return &HttpResponse{Error: e.Err, responseClosed: response}
 		}
@@ -254,19 +261,27 @@ func (builder *HttpRequestBuilder) Request(httpClient *http.Client) *HttpRespons
 		log.Debugf("response status %v  headers:\n%v\n", response.StatusCode, response.Header)
 	}
 
-	if builder.afterAction != nil {
-		builder.afterAction(response)
-	}
 	if response.Body == nil {
+		if builder.afterAction != nil {
+			builder.afterAction(response)
+		}
 		return &HttpResponse{Status: response.StatusCode, Header: response.Header, responseClosed: response}
 	} else {
 		body, ioReadError := io.ReadAll(response.Body)
+		if response != nil && response.Body != nil {
+			defer response.Body.Close()
+		}
+		if builder.afterAction != nil {
+			builder.afterAction(response)
+		}
 		if PrintDebug {
 			log.Debugf("Body %v \n", string(body))
 		}
 		if ioReadError != nil {
+			log.Error(ioReadError)
 			return &HttpResponse{Error: ioReadError, Header: response.Header, responseClosed: response}
 		}
 		return &HttpResponse{Status: response.StatusCode, Body: body, Header: response.Header, responseClosed: response}
 	}
+
 }
