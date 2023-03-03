@@ -46,7 +46,7 @@ type HttpResponse struct {
 	Body           []byte
 	Header         http.Header
 	Error          error //error类型是网络请求之类，io读取之类的错误，不包含逻辑错误
-	responseClosed *http.Response
+	ResponseClosed *http.Response
 }
 
 func (response *HttpResponse) HasError() bool {
@@ -61,7 +61,7 @@ func (response *HttpResponse) CookieValue(name string) string {
 }
 func (response *HttpResponse) Cookie(name string, reg bool) *http.Cookie {
 	if !response.HasError() {
-		for _, cookie := range response.responseClosed.Cookies() {
+		for _, cookie := range response.ResponseClosed.Cookies() {
 			if !reg {
 				if name == cookie.Name {
 					return cookie
@@ -253,9 +253,9 @@ func (builder *HttpRequestBuilder) Request(httpClient *http.Client) *HttpRespons
 	if httpError != nil {
 		log.Error("http request error %v  \n", httpError)
 		if e, ok := httpError.(*url.Error); ok {
-			return &HttpResponse{Error: e.Err, responseClosed: response}
+			return &HttpResponse{Error: e.Err, ResponseClosed: response}
 		}
-		return &HttpResponse{Error: errors.New("NetworkError"), responseClosed: response}
+		return &HttpResponse{Error: errors.New("NetworkError"), ResponseClosed: response}
 	}
 	if PrintDebug && response != nil {
 		log.Debugf("response status %v  headers:\n%v\n", response.StatusCode, response.Header)
@@ -265,7 +265,7 @@ func (builder *HttpRequestBuilder) Request(httpClient *http.Client) *HttpRespons
 		if builder.afterAction != nil {
 			builder.afterAction(response)
 		}
-		return &HttpResponse{Status: response.StatusCode, Header: response.Header, responseClosed: response}
+		return &HttpResponse{Status: response.StatusCode, Header: response.Header, ResponseClosed: response}
 	} else {
 		body, ioReadError := io.ReadAll(response.Body)
 		if response != nil && response.Body != nil {
@@ -275,13 +275,13 @@ func (builder *HttpRequestBuilder) Request(httpClient *http.Client) *HttpRespons
 			builder.afterAction(response)
 		}
 		if PrintDebug {
-			log.Debugf("Body %v \n", string(body))
+			log.Debugf("Response Body\n %v \n", string(body))
 		}
 		if ioReadError != nil {
 			log.Error(ioReadError)
-			return &HttpResponse{Error: ioReadError, Header: response.Header, responseClosed: response}
+			return &HttpResponse{Error: ioReadError, Header: response.Header, ResponseClosed: response}
 		}
-		return &HttpResponse{Status: response.StatusCode, Body: body, Header: response.Header, responseClosed: response}
+		return &HttpResponse{Status: response.StatusCode, Body: body, Header: response.Header, ResponseClosed: response}
 	}
 
 }
