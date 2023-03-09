@@ -35,8 +35,8 @@ func IsInArray2[T int | int64 | int32 | int8 | int16 | float32 | float64 | bool 
 	}
 	return false
 }
-func MapMerge(mp ...map[string]string) map[string]string {
-	m2 := make(map[string]string)
+func MapMerge(mp ...map[string]any) map[string]any {
+	m2 := make(map[string]any)
 	for _, m1 := range mp {
 		for k, v := range m1 {
 			m2[k] = v
