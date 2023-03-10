@@ -1,6 +1,10 @@
 package utilz
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+	"strconv"
+)
 
 /*
 *
@@ -48,12 +52,54 @@ func GetMapValue(v map[string]any, path ...string) (any, error) {
 	if len(path) == 0 {
 		return v, nil
 	}
+	if len(path) == 1 {
+		return v[path[0]], nil
+	}
 	ok := false
-	for i := 0; i < len(path)-1; i++ {
+	for i := 0; i < len(path)-2; i++ {
 		v, ok = v[path[i]].(map[string]any)
 		if !ok {
 			return nil, errors.New(path[i] + " fail")
 		}
 	}
 	return v[path[len(path)-1]], nil
+}
+
+/*
+*
+获取map或者数组内的数据，path是路径，如果是 取 array的，则path是array的index的字符串形式
+
+	m := map[string]any{
+			"foo": []any{
+				map[string]any{"bar": "baz"},
+				map[string]any{"bar": "qux"},
+			},
+		}
+		val, err := GetMapArrayValue(m, "foo", "1", "bar")
+*/
+func GetMapArrayValue(v any, path ...string) (any, error) {
+	if len(path) == 0 {
+		return v, nil
+	}
+	for _, p := range path {
+		switch t := v.(type) {
+		case map[string]any:
+			var ok bool
+			//v, ok = t[p.(string)]
+			v, ok = t[p]
+			if !ok {
+				return nil, fmt.Errorf("key not found: %s", p)
+			}
+		case []any:
+			//i, err := strconv.Atoi(p.(string))
+			i, err := strconv.Atoi(p)
+			if err != nil || i < 0 || i >= len(t) {
+				return nil, fmt.Errorf("index out of range: %s", p)
+			}
+			v = t[i]
+		default:
+			return nil, fmt.Errorf("invalid type: %T", v)
+		}
+	}
+	return v, nil
 }
