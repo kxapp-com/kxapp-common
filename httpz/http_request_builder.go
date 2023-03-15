@@ -232,7 +232,7 @@ func (builder *HttpRequestBuilder) Request(httpClient *http.Client) *HttpRespons
 
 		headers, e := json.Marshal(request.Header)
 		if e != nil {
-			log.Error("request header error %v", e)
+			log.Errorf("request header error %v", e)
 		}
 		log.Debugf("\n request--------------- %s %s \n request headers:%s", request.Method, request.URL, string(headers))
 		if builder.body != nil {
@@ -251,7 +251,7 @@ func (builder *HttpRequestBuilder) Request(httpClient *http.Client) *HttpRespons
 
 	response, httpError := httpClient.Do(request)
 	if httpError != nil {
-		log.Error("http request error %v  \n", httpError)
+		log.Errorf("http request error %v  \n", httpError)
 		if e, ok := httpError.(*url.Error); ok {
 			return &HttpResponse{Error: e.Err, ResponseClosed: response}
 		}

@@ -12,7 +12,7 @@ func TestGetMapArrayValue(t *testing.T) {
 			map[string]any{"bar": "qux"},
 		},
 	}
-	val, err := GetMapArrayValue(m, "foo", "1", "bar")
+	val, err := GetMapArrayValue(m, "foo1", "1", "bar")
 	if err != nil {
 		fmt.Println("Error:", err)
 	} else {

@@ -1,7 +1,6 @@
 package utilz
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 )
@@ -48,7 +47,8 @@ func MapMerge(mp ...map[string]any) map[string]any {
 	}
 	return m2
 }
-func GetMapValue(v map[string]any, path ...string) (any, error) {
+
+/*func GetMapValue(v map[string]any, path ...string) (any, error) {
 	if len(path) == 0 {
 		return v, nil
 	}
@@ -63,7 +63,7 @@ func GetMapValue(v map[string]any, path ...string) (any, error) {
 		}
 	}
 	return v[path[len(path)-1]], nil
-}
+}*/
 
 /*
 *
@@ -77,7 +77,7 @@ func GetMapValue(v map[string]any, path ...string) (any, error) {
 		}
 		val, err := GetMapArrayValue(m, "foo", "1", "bar")
 */
-func GetMapArrayValue(v any, path ...string) (any, error) {
+func GetMapValue(v any, path ...string) (any, error) {
 	if len(path) == 0 {
 		return v, nil
 	}
