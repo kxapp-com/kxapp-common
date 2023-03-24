@@ -23,6 +23,10 @@ type BasicType interface {
 	NumberType | ~string | ~bool
 }
 
+/*
+*
+判断一个对象是否在数组里面
+*/
 func InSlice(slice any, item any) bool {
 	s := reflect.ValueOf(slice)
 	if s.Kind() != reflect.Slice {
@@ -35,6 +39,21 @@ func InSlice(slice any, item any) bool {
 		}
 	}
 	return false
+}
+
+/*
+*
+反转数组元素索引
+*/
+func ReverseSlice(slice any) {
+	s := reflect.ValueOf(slice)
+	if s.Kind() != reflect.Slice {
+		panic("ReverseSlice called with non-slice value")
+	}
+	for i, j := 0, s.Len()-1; i < j; i, j = i+1, j-1 {
+		s.Index(i).Set(reflect.ValueOf(s.Index(j).Interface()))
+		s.Index(j).Set(reflect.ValueOf(s.Index(i).Interface()))
+	}
 }
 
 //func IsInArray[T BasicType](resultStatus T, array []T) bool {
@@ -66,8 +85,17 @@ func RemoveAtIndex(slice any, index int) any {
 	return reflect.AppendSlice(s.Slice(0, index), s.Slice(index+1, s.Len())).Interface()
 }
 
-func MapMerge(maps ...map[any]any) map[any]any {
+func MapAnyMerge(maps ...map[any]any) map[any]any {
 	result := make(map[any]any)
+	for _, m := range maps {
+		for k, v := range m {
+			result[k] = v
+		}
+	}
+	return result
+}
+func MapMerge(maps ...map[string]any) map[string]any {
+	result := make(map[string]any)
 	for _, m := range maps {
 		for k, v := range m {
 			result[k] = v
