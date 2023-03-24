@@ -2,6 +2,7 @@ package utilz
 
 import (
 	"fmt"
+	"reflect"
 	"strconv"
 )
 
@@ -22,48 +23,58 @@ type BasicType interface {
 	NumberType | ~string | ~bool
 }
 
-func IsInArray[T BasicType](resultStatus T, array []T) bool {
-	for _, status := range array {
-		if status == resultStatus {
+func InSlice(slice any, item any) bool {
+	s := reflect.ValueOf(slice)
+	if s.Kind() != reflect.Slice {
+		return false
+		//panic("InSlice called with non-slice value")
+	}
+	for i := 0; i < s.Len(); i++ {
+		if reflect.DeepEqual(item, s.Index(i).Interface()) {
 			return true
 		}
 	}
 	return false
-}
-func IsInArray2[T int | int64 | int32 | int8 | int16 | float32 | float64 | bool | string](resultStatus T, array []T) bool {
-	for _, status := range array {
-		if status == resultStatus {
-			return true
-		}
-	}
-	return false
-}
-func MapMerge(mp ...map[string]any) map[string]any {
-	m2 := make(map[string]any)
-	for _, m1 := range mp {
-		for k, v := range m1 {
-			m2[k] = v
-		}
-	}
-	return m2
 }
 
-/*func GetMapValue(v map[string]any, path ...string) (any, error) {
-	if len(path) == 0 {
-		return v, nil
+//func IsInArray[T BasicType](resultStatus T, array []T) bool {
+//	for _, status := range array {
+//		if status == resultStatus {
+//			return true
+//		}
+//	}
+//	return false
+//}
+//func IsInArray2[T int | int64 | int32 | int8 | int16 | float32 | float64 | bool | string](resultStatus T, array []T) bool {
+//	for _, status := range array {
+//		if status == resultStatus {
+//			return true
+//		}
+//	}
+//	return false
+//}
+
+/*
+*
+从一个数组里面删除指定索引的元素
+*/
+func RemoveAtIndex(slice any, index int) any {
+	s := reflect.ValueOf(slice)
+	if s.Kind() != reflect.Slice {
+		panic("RemoveIndex called with non-slice value")
 	}
-	if len(path) == 1 {
-		return v[path[0]], nil
-	}
-	ok := false
-	for i := 0; i < len(path)-2; i++ {
-		v, ok = v[path[i]].(map[string]any)
-		if !ok {
-			return nil, errors.New(path[i] + " fail")
+	return reflect.AppendSlice(s.Slice(0, index), s.Slice(index+1, s.Len())).Interface()
+}
+
+func MapMerge(maps ...map[any]any) map[any]any {
+	result := make(map[any]any)
+	for _, m := range maps {
+		for k, v := range m {
+			result[k] = v
 		}
 	}
-	return v[path[len(path)-1]], nil
-}*/
+	return result
+}
 
 /*
 *
