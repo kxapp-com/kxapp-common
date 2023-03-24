@@ -45,15 +45,17 @@ func InSlice(slice any, item any) bool {
 *
 反转数组元素索引
 */
-func ReverseSlice(slice any) {
+func ReverseSlice(slice interface{}) interface{} {
 	s := reflect.ValueOf(slice)
 	if s.Kind() != reflect.Slice {
 		panic("ReverseSlice called with non-slice value")
 	}
-	for i, j := 0, s.Len()-1; i < j; i, j = i+1, j-1 {
-		s.Index(i).Set(reflect.ValueOf(s.Index(j).Interface()))
-		s.Index(j).Set(reflect.ValueOf(s.Index(i).Interface()))
+	result := reflect.MakeSlice(reflect.TypeOf(slice), s.Len(), s.Cap())
+	for i, j := 0, s.Len()-1; i <= j; i, j = i+1, j-1 {
+		result.Index(i).Set(s.Index(j))
+		result.Index(j).Set(s.Index(i))
 	}
+	return result.Interface()
 }
 
 //func IsInArray[T BasicType](resultStatus T, array []T) bool {
