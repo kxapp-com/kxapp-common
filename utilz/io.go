@@ -187,18 +187,23 @@ func PropertiesEncode(properties map[string]any) []byte {
 	return []byte(content.String())
 }
 
-func Download(url string, filepath string) error {
-	response, err := http.Get(url)
+func Download(client *http.Client, url string, savePath string) error {
+	response, err := client.Get(url)
 	if err != nil {
 		return err
 	}
 	defer response.Body.Close()
-
-	file, err := os.Create(filepath)
+	if !PathExists(filepath.Dir(savePath)) {
+		os.MkdirAll(filepath.Dir(savePath), fs.ModePerm)
+	}
+	file, err := os.Create(savePath)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
+	if response.StatusCode != http.StatusOK {
+		return errors.New(response.Status)
+	}
 
 	_, err = io.Copy(file, response.Body)
 	if err != nil {
