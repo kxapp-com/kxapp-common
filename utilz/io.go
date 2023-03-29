@@ -116,6 +116,18 @@ func ParseMapToObject[T any](mp map[string]any) (*T, error) {
 	}
 	return ParseJsonAs[T](bt)
 }
+func StructToMap(obj any) (map[string]any, error) {
+	objMap := make(map[string]any)
+	objJson, err := json.Marshal(obj)
+	if err != nil {
+		return nil, err
+	}
+	err = json.Unmarshal(objJson, &objMap)
+	if err != nil {
+		return nil, err
+	}
+	return objMap, nil
+}
 
 /*
 *
@@ -128,7 +140,7 @@ func ReadPropertiesFile(filename string) (map[string]string, error) {
 		return nil, err
 	}
 	defer file.Close()
-	return ParsePropertiesFile(file)
+	return PropertiesDecode(file)
 }
 
 /*
@@ -136,7 +148,7 @@ func ReadPropertiesFile(filename string) (map[string]string, error) {
 读取配置文件.properties内容，配置文件可以用#!开头表示注释，用=表示键值对
 增强的可以用\=表示key,value里面有=号字符
 */
-func ParsePropertiesFile(readerPropertes io.Reader) (map[string]string, error) {
+func PropertiesDecode(readerPropertes io.Reader) (map[string]string, error) {
 	const tp = "12e428c4-9902-42f9-8dad-d5c8dbeae091"
 	var result = map[string]string{}
 	reader := bufio.NewReader(readerPropertes)
@@ -160,4 +172,15 @@ func ParsePropertiesFile(readerPropertes io.Reader) (map[string]string, error) {
 		}
 	}
 	return result, nil
+}
+
+func PropertiesEncode(properties map[string]string) []byte {
+	var content strings.Builder
+	for key, value := range properties {
+		content.WriteString(key)
+		content.WriteString("=")
+		content.WriteString(value)
+		content.WriteString("\n")
+	}
+	return []byte(content.String())
 }
