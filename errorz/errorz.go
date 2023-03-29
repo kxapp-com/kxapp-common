@@ -8,13 +8,14 @@ import (
 )
 
 const (
-	StatusNetworkError   = 6000
-	StatusParseDataError = 6001
-	StatusInternalError  = 6002
-	StatusParamError     = 6003
-	StatusIOError        = 6004
-	StatusExpiredError   = 6005
-	StatusSuccess        = 0
+	StatusNetworkError      = 6000
+	StatusParseDataError    = 6001
+	StatusInternalError     = 6002
+	StatusParamError        = 6003
+	StatusIOError           = 6004
+	StatusExpiredError      = 6005
+	StatusDataNotFoundError = 6006
+	StatusSuccess           = 0
 )
 const StatusNameSuccess = "success"
 
@@ -37,6 +38,8 @@ func StatusText(code int) string {
 		return "StatusIOError"
 	case StatusExpiredError:
 		return "StatusExpiredError"
+	case StatusDataNotFoundError:
+		return "StatusDataNotFoundError"
 	case StatusSuccess:
 		return StatusNameSuccess
 	default:
@@ -91,6 +94,9 @@ func NewNetworkError(e error) *StatusError {
 }
 func NewInternalError(e string) *StatusError {
 	return &StatusError{Status: StatusInternalError, Body: e}
+}
+func NewDataNotFoundError(e string) *StatusError {
+	return &StatusError{Status: StatusDataNotFoundError, Body: e}
 }
 func NewParamError(e string) *StatusError {
 	return &StatusError{Status: StatusParamError, Body: e}
