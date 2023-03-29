@@ -6,9 +6,11 @@ import (
 	"encoding/gob"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/kxapp-com/kxapp-common/cryptoz"
 	_ "github.com/kxapp-com/kxapp-common/cryptoz"
 	"io/fs"
+	"net/http"
 	"strings"
 
 	//"github.com/kxapp-com/kxapp-common/cryptoz"
@@ -174,13 +176,34 @@ func PropertiesDecode(readerPropertes io.Reader) (map[string]string, error) {
 	return result, nil
 }
 
-func PropertiesEncode(properties map[string]string) []byte {
+func PropertiesEncode(properties map[string]any) []byte {
 	var content strings.Builder
 	for key, value := range properties {
 		content.WriteString(key)
 		content.WriteString("=")
-		content.WriteString(value)
+		content.WriteString(fmt.Sprintf("%v", value))
 		content.WriteString("\n")
 	}
 	return []byte(content.String())
+}
+
+func Download(url string, filepath string) error {
+	response, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+	defer response.Body.Close()
+
+	file, err := os.Create(filepath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	_, err = io.Copy(file, response.Body)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
