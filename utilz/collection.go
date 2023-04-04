@@ -90,8 +90,10 @@ func RemoveAtIndex(slice any, index int) any {
 func MapAnyMerge(maps ...map[any]any) map[any]any {
 	result := make(map[any]any)
 	for _, m := range maps {
-		for k, v := range m {
-			result[k] = v
+		if m != nil {
+			for k, v := range m {
+				result[k] = v
+			}
 		}
 	}
 	return result
@@ -99,8 +101,10 @@ func MapAnyMerge(maps ...map[any]any) map[any]any {
 func MapMerge(maps ...map[string]any) map[string]any {
 	result := make(map[string]any)
 	for _, m := range maps {
-		for k, v := range m {
-			result[k] = v
+		if m != nil {
+			for k, v := range m {
+				result[k] = v
+			}
 		}
 	}
 	return result
