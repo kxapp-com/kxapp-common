@@ -136,7 +136,7 @@ func StructToMap(obj any) (map[string]any, error) {
 读取配置文件.properties内容，配置文件可以用#!开头表示注释，用=表示键值对
 增强的可以用\=表示key,value里面有=号字符
 */
-func ReadPropertiesFile(filename string) (map[string]string, error) {
+func ReadPropertiesFile(filename string) (map[string]any, error) {
 	file, err := os.Open(filename)
 	if err != nil {
 		return nil, err
@@ -150,9 +150,9 @@ func ReadPropertiesFile(filename string) (map[string]string, error) {
 读取配置文件.properties内容，配置文件可以用#!开头表示注释，用=表示键值对
 增强的可以用\=表示key,value里面有=号字符
 */
-func PropertiesDecode(readerPropertes io.Reader) (map[string]string, error) {
+func PropertiesDecode(readerPropertes io.Reader) (map[string]any, error) {
 	const tp = "12e428c4-9902-42f9-8dad-d5c8dbeae091"
-	var result = map[string]string{}
+	var result = map[string]any{}
 	reader := bufio.NewReader(readerPropertes)
 	for {
 		line, e := reader.ReadString('\n')
