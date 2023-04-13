@@ -10,7 +10,6 @@ import (
 	"github.com/kxapp-com/kxapp-common/cryptoz"
 	_ "github.com/kxapp-com/kxapp-common/cryptoz"
 	"io/fs"
-	"net/http"
 	"strings"
 
 	//"github.com/kxapp-com/kxapp-common/cryptoz"
@@ -185,30 +184,4 @@ func PropertiesEncode(properties map[string]any) []byte {
 		content.WriteString("\n")
 	}
 	return []byte(content.String())
-}
-
-func Download(client *http.Client, url string, savePath string) error {
-	response, err := client.Get(url)
-	if err != nil {
-		return err
-	}
-	defer response.Body.Close()
-	if !PathExists(filepath.Dir(savePath)) {
-		os.MkdirAll(filepath.Dir(savePath), fs.ModePerm)
-	}
-	file, err := os.Create(savePath)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-	if response.StatusCode != http.StatusOK {
-		return errors.New(response.Status)
-	}
-
-	_, err = io.Copy(file, response.Body)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
