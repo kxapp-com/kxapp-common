@@ -275,7 +275,13 @@ func (builder *HttpRequestBuilder) Request(httpClient *http.Client) *HttpRespons
 			builder.afterAction(response)
 		}
 		if PrintDebug {
-			log.Debugf("Response Body\n %v \n", string(body))
+			ct := response.Header.Get("Content-Type")
+			if strings.HasPrefix(ct, "image") {
+				log.Debugf("response body is " + ct)
+			} else {
+				log.Debugf("Response Body\n %v \n", string(body))
+			}
+
 		}
 		if ioReadError != nil {
 			log.Error(ioReadError)
