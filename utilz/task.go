@@ -14,6 +14,40 @@ type TaskWorkCrash[T any] struct {
 	error any
 }
 
+func MultiThreadTask[T any](slice []T, numThreads int, taskFunc func(data T)) {
+	if numThreads < 0 {
+		numThreads = runtime.NumCPU()
+	}
+	if numThreads == 0 || numThreads > len(slice) {
+		numThreads = len(slice)
+	}
+	// Calculate the number of elements per thread
+	numElementsPerThread := len(slice) / numThreads
+	// Create a wait group to wait for all threads to finish
+	var wg sync.WaitGroup
+	// Iterate over the number of threads
+	for i := 0; i < numThreads; i++ {
+		// Increment the wait group
+		wg.Add(1)
+		// Calculate the start and end indices for the current thread
+		start := i * numElementsPerThread
+		end := (i + 1) * numElementsPerThread
+		// For the last thread, include any remaining elements
+		if i == numThreads-1 {
+			end = len(slice)
+		}
+		// Launch a goroutine to process the elements for the current thread
+		go func(start, end int) {
+			defer wg.Done()
+			for j := start; j < end; j++ {
+				taskFunc(slice[j])
+			}
+		}(start, end)
+	}
+	// Wait for all threads to finish
+	wg.Wait()
+}
+
 /*
 任务工厂，对数据datas，每个数据需要进行task处理。分配workcount个工人（go程）进行并行工作
 workCount 设置0表示使用len(datas)个工人，设置-1表示有多少个cpu内核就多少个工人，如果工人数超过datas的size，则工人数会设置为datas的size.
