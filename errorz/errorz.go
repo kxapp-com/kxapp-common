@@ -72,9 +72,13 @@ func (e *StatusError) AsStatusResult() *StatusResult {
 func (e *StatusError) StatusName() string {
 	return StatusText(e.Status)
 }
-func (e *StatusError) Error() string {
+func (e *StatusError) ToString() string {
 	message := StatusText(e.Status)
 	return fmt.Sprintf("status:%d message:%s body: %s", e.Status, message, string(e.Body))
+}
+func (e *StatusError) Error() string {
+	message := StatusText(e.Status)
+	return fmt.Sprintf(" %s , %s", message, e.Body)
 	//return fmt.Sprintf("status:%d message:%s body: %s", e.Status, e.Message, string(e.Body))
 }
 
