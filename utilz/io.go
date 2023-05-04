@@ -1,17 +1,20 @@
 package utilz
 
 import (
+	"archive/zip"
 	"bufio"
 	"bytes"
 	"encoding/gob"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/disintegration/imaging"
 	"github.com/kxapp-com/kxapp-common/cryptoz"
 	_ "github.com/kxapp-com/kxapp-common/cryptoz"
+	"image"
+	"image/png"
 	"io/fs"
 	"strings"
-
 	//"github.com/kxapp-com/kxapp-common/cryptoz"
 	"howett.net/plist"
 	"io"
@@ -184,4 +187,108 @@ func PropertiesEncode(properties map[string]any) []byte {
 		content.WriteString("\n")
 	}
 	return []byte(content.String())
+}
+
+func CopyFile(src string, dst string) (err error) {
+	// 打开源文件
+	inFile, err := os.Open(src)
+	if err != nil {
+		return
+	}
+	defer inFile.Close()
+
+	// 创建并打开目标文件
+	outFile, err := os.Create(dst)
+	if err != nil {
+		return
+	}
+	defer outFile.Close()
+
+	// 将源文件复制到目标文件
+	_, err = io.Copy(outFile, inFile)
+	return
+}
+
+func ZipDir(source string, zipFilePath string) (string, error) {
+	// Create a new zip archive
+	//	zipFilePath := source + ".zip"
+	zipFile, err := os.Create(zipFilePath)
+	if err != nil {
+		return "", err
+	}
+	defer zipFile.Close()
+
+	// Create a new zip writer
+	zipWriter := zip.NewWriter(zipFile)
+	defer zipWriter.Close()
+
+	// Walk through the directory and add all files to the zip archive
+	err = filepath.Walk(source, func(filePath string, fileInfo os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		// Skip directories
+		if fileInfo.IsDir() {
+			return nil
+		}
+
+		// Open the file
+		rpath, _ := filepath.Rel(source, filePath)
+		file, err := os.Open(filePath)
+		if err != nil {
+			return err
+		}
+		defer file.Close()
+
+		// Create a new file in the zip archive
+		zipFileT, err := zipWriter.Create(rpath)
+		if err != nil {
+			return err
+		}
+
+		// Copy the file to the zip archive
+		_, err = io.Copy(zipFileT, file)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return "", err
+	}
+
+	// Return the path to the zip file
+	return zipFilePath, nil
+}
+func ResizeImage(inputPath string, outputPath string, width int, height int) error {
+	// Open the input file
+	inputFile, err := os.Open(inputPath)
+	if err != nil {
+		return err
+	}
+	defer inputFile.Close()
+
+	// Decode the input image
+	inputImage, _, err := image.Decode(inputFile)
+	if err != nil {
+		return err
+	}
+	outputImage := imaging.Resize(inputImage, width, height, imaging.Lanczos)
+	if _, err := os.Stat(filepath.Dir(outputPath)); os.IsNotExist(err) {
+		os.MkdirAll(filepath.Dir(outputPath), 0644)
+	}
+	outputFile, err := os.Create(outputPath)
+	if err != nil {
+		return err
+	}
+	defer outputFile.Close()
+	err = png.Encode(outputFile, outputImage)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
