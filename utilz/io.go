@@ -11,6 +11,7 @@ import (
 	"github.com/disintegration/imaging"
 	"github.com/kxapp-com/kxapp-common/cryptoz"
 	_ "github.com/kxapp-com/kxapp-common/cryptoz"
+	"github.com/kxapp-com/kxapp-common/filez"
 	"image"
 	"image/png"
 	"io/fs"
@@ -30,7 +31,7 @@ func WriteToJsonFileSec(path string, obj any, password string) error {
 	if e2 != nil {
 		return e2
 	}
-	if !PathExists(filepath.Dir(path)) {
+	if !filez.PathExists(filepath.Dir(path)) {
 		os.MkdirAll(filepath.Dir(path), fs.ModePerm)
 	}
 	if password != "" {
@@ -70,18 +71,19 @@ func ParsePlistAs[T any](data []byte) (*T, error) {
 	return nil, errors.New("input data error")
 }
 
-// PathExists is used to determine whether the path folder exists
-// True if it exists, false otherwise
-func PathExists(path string) bool {
-	_, err := os.Stat(path)
-	if err == nil {
-		return true
-	}
-	if os.IsNotExist(err) {
-		return false
-	}
-	return false
-}
+//
+//// PathExists is used to determine whether the path folder exists
+//// True if it exists, false otherwise
+//func PathExists(path string) bool {
+//	_, err := os.Stat(path)
+//	if err == nil {
+//		return true
+//	}
+//	if os.IsNotExist(err) {
+//		return false
+//	}
+//	return false
+//}
 
 func EncodeGob(obj any) []byte {
 	var buffer bytes.Buffer
@@ -187,26 +189,6 @@ func PropertiesEncode(properties map[string]any) []byte {
 		content.WriteString("\n")
 	}
 	return []byte(content.String())
-}
-
-func CopyFile(src string, dst string) (err error) {
-	// 打开源文件
-	inFile, err := os.Open(src)
-	if err != nil {
-		return
-	}
-	defer inFile.Close()
-
-	// 创建并打开目标文件
-	outFile, err := os.Create(dst)
-	if err != nil {
-		return
-	}
-	defer outFile.Close()
-
-	// 将源文件复制到目标文件
-	_, err = io.Copy(outFile, inFile)
-	return
 }
 
 func ZipDir(source string, zipFilePath string) (string, error) {
