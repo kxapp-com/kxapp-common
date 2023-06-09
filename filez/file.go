@@ -3,6 +3,7 @@ package filez
 import (
 	"errors"
 	"fmt"
+	"golang.org/x/exp/slices"
 	"io"
 	"os"
 	"path/filepath"
@@ -96,4 +97,17 @@ func IsDir(path string) bool {
 		return true
 	}
 	return false
+}
+func FindFiles(folderPath string, ext []string) []string {
+	var filesList []string
+	filepath.Walk(folderPath, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() && slices.Contains(ext, filepath.Ext(path)) {
+			filesList = append(filesList, path)
+		}
+		return nil
+	})
+	return filesList
 }

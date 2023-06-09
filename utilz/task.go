@@ -15,6 +15,9 @@ type TaskWorkCrash[T any] struct {
 }
 
 func MultiThreadTask[T any](slice []T, numThreads int, taskFunc func(data T)) {
+	if len(slice) <= 0 {
+		return
+	}
 	if numThreads < 0 {
 		numThreads = runtime.NumCPU()
 	}
