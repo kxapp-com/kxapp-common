@@ -223,6 +223,7 @@ func ZipDir(source string, zipFilePath string) (string, error) {
 		}
 		defer file.Close()
 
+		rpath = strings.ReplaceAll(rpath, "\\", "/")
 		// Create a new file in the zip archive
 		zipFileT, err := zipWriter.Create(rpath)
 		if err != nil {
