@@ -23,6 +23,10 @@ func PathExists(path string) bool {
 	}
 	return false
 }
+func SiblingPath(path string, sibFile string) string {
+	parent := filepath.Dir(filepath.Clean(path))
+	return filepath.Join(parent, filepath.Clean(sibFile))
+}
 func CopyFile(src string, dst string) (err error) {
 	// 打开源文件
 	inFile, err := os.Open(src)
