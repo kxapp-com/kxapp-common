@@ -1,12 +1,14 @@
 package filez
 
 import (
+	"archive/zip"
 	"errors"
 	"fmt"
 	"golang.org/x/exp/slices"
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 // PathExists is used to determine whether the path folder exists
@@ -110,4 +112,104 @@ func FindFiles(folderPath string, ext []string) []string {
 		return nil
 	})
 	return filesList
+}
+
+func ZipDir(source string, zipFilePath string) (string, error) {
+	// Create a new zip archive
+	//	zipFilePath := source + ".zip"
+	zipFile, err := os.Create(zipFilePath)
+	if err != nil {
+		return "", err
+	}
+	defer zipFile.Close()
+
+	// Create a new zip writer
+	zipWriter := zip.NewWriter(zipFile)
+	defer zipWriter.Close()
+
+	// Walk through the directory and add all files to the zip archive
+	err = filepath.Walk(source, func(filePath string, fileInfo os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		// Skip directories
+		if fileInfo.IsDir() {
+			return nil
+		}
+
+		// Open the file
+		rpath, _ := filepath.Rel(source, filePath)
+		file, err := os.Open(filePath)
+		if err != nil {
+			return err
+		}
+		defer file.Close()
+
+		rpath = strings.ReplaceAll(rpath, "\\", "/")
+		// Create a new file in the zip archive
+		zipFileT, err := zipWriter.Create(rpath)
+		if err != nil {
+			return err
+		}
+
+		// Copy the file to the zip archive
+		_, err = io.Copy(zipFileT, file)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return "", err
+	}
+
+	// Return the path to the zip file
+	return zipFilePath, nil
+}
+func Unzip(src string, dest string) error {
+	r, err := zip.OpenReader(src)
+	if err != nil {
+		return err
+	}
+	defer r.Close()
+
+	for _, f := range r.File {
+		rc, err := f.Open()
+		if err != nil {
+			return err
+		}
+		defer rc.Close()
+
+		path := filepath.Join(dest, f.Name)
+		if !strings.HasPrefix(path, filepath.Clean(dest)+string(os.PathSeparator)) {
+			return fmt.Errorf("%s: illegal file path", path)
+		}
+
+		if f.FileInfo().IsDir() {
+			os.MkdirAll(path, f.Mode())
+			continue
+		}
+
+		fpath := filepath.Dir(path)
+		if _, err := os.Stat(fpath); err != nil {
+			if err := os.MkdirAll(fpath, 0755); err != nil {
+				return err
+			}
+		}
+
+		f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+
+		_, err = io.Copy(f, rc)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
