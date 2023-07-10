@@ -97,7 +97,7 @@ func DecodeGob(data []byte, ptr any) {
 	decoder.Decode(ptr)
 }
 
-func ReadFileData(path string, start, length int) ([]byte, error) {
+func ReadFileData(path string, start, length uint32) ([]byte, error) {
 	fd, err := os.Open(path)
 	if err != nil {
 		return nil, err
@@ -108,7 +108,7 @@ func ReadFileData(path string, start, length int) ([]byte, error) {
 	if e == io.EOF {
 		return data[0:n], nil
 	}
-	if n == length {
+	if n == int(length) {
 		return data, nil
 	} else {
 		return nil, e
