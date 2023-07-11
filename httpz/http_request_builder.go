@@ -6,10 +6,12 @@ import (
 	"encoding/json"
 	"errors"
 	"golang.org/x/net/context"
+	"golang.org/x/net/http/httpproxy"
 	"io"
 	"net"
 	"net/http/cookiejar"
 	"regexp"
+	"sync"
 	"time"
 
 	//"log"
@@ -78,12 +80,40 @@ func (response *HttpResponse) Cookie(name string, reg bool) *http.Cookie {
 func defaultTransportDialContext(dialer *net.Dialer) func(context.Context, string, string) (net.Conn, error) {
 	return dialer.DialContext
 }
+func proxyFromEnvironment(req *http.Request) (*url.URL, error) {
+	abc, e := envProxyFunc()(req.URL)
+	return abc, e
+}
+
+var (
+	// proxyConfigOnce guards proxyConfig
+	envProxyOnce      sync.Once
+	envProxyFuncValue func(*url.URL) (*url.URL, error)
+)
+
+// defaultProxyConfig returns a ProxyConfig value looked up
+// from the environment. This mitigates expensive lookups
+// on some platforms (e.g. Windows).
+func envProxyFunc() func(*url.URL) (*url.URL, error) {
+	envProxyOnce.Do(func() {
+		envProxyFuncValue = httpproxy.FromEnvironment().ProxyFunc()
+	})
+	return envProxyFuncValue
+}
+
+// resetProxyConfig is used by tests.
+func ResetProxyConfig() {
+	envProxyOnce = sync.Once{}
+	envProxyFuncValue = nil
+}
 func NewHttpClient(jar http.CookieJar) *http.Client {
 	if jar == nil {
 		jar, _ = cookiejar.New(nil)
 	}
+	px := proxyFromEnvironment
 	tra2 := &http.Transport{
-		Proxy: http.ProxyFromEnvironment,
+		//Proxy: http.ProxyFromEnvironment,
+		Proxy: px,
 		DialContext: defaultTransportDialContext(&net.Dialer{
 			Timeout:   30 * time.Second,
 			KeepAlive: 30 * time.Second,
