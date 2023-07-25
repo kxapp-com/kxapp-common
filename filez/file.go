@@ -149,8 +149,9 @@ func ZipDir(source string, zipFilePath string) (string, error) {
 			return err
 		}
 		defer file.Close()
+		rpath = filepath.ToSlash(rpath)
 
-		rpath = strings.ReplaceAll(rpath, "\\", "/")
+		//rpath = strings.ReplaceAll(rpath, "\\", "/")
 		// Create a new file in the zip archive
 		zipFileT, err := zipWriter.Create(rpath)
 		if err != nil {
