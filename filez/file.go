@@ -150,6 +150,7 @@ func ZipDir(source string, zipFilePath string) (string, error) {
 		}
 		defer file.Close()
 		rpath = filepath.ToSlash(rpath)
+		//fmt.Printf("zip file %s to %s\n",filePath,rpath)
 
 		//rpath = strings.ReplaceAll(rpath, "\\", "/")
 		// Create a new file in the zip archive
