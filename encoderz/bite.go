@@ -1,4 +1,4 @@
-package utilz
+package encoderz
 
 import (
 	"bytes"
@@ -11,7 +11,7 @@ func EncodeLengthPrefixed(slices ...[]byte) []byte {
 	for _, data := range slices {
 		length := len(data)
 		// 使用 binary 包中的 PutVarint 方法将长度写入 buffer
-		binary.Write(buffer, binary.LittleEndian, int64(length))
+		binary.Write(buffer, binary.LittleEndian, uint32(length))
 		// 将数据体写入 buffer
 		buffer.Write(data)
 	}
@@ -24,7 +24,9 @@ func DecodeLengthPrefixed(data []byte) ([][]byte, error) {
 	result := make([][]byte, 0)
 	for buffer.Len() > 0 {
 		// 使用 binary 包中的 ReadVarint 方法读取长度信息
-		length, err := binary.ReadVarint(buffer)
+		var length uint32
+		err := binary.Read(buffer, binary.LittleEndian, &length)
+		//length, err := binary.ReadVarint(buffer)
 		if err != nil {
 			return nil, err
 		}

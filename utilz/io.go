@@ -3,27 +3,31 @@ package utilz
 import (
 	"bufio"
 	"bytes"
+	"crypto/rc4"
 	"encoding/gob"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/disintegration/imaging"
-	"github.com/kxapp-com/kxapp-common/cryptoz"
-	_ "github.com/kxapp-com/kxapp-common/cryptoz"
 	"github.com/kxapp-com/kxapp-common/filez"
+	"howett.net/plist"
 	"image"
 	"image/png"
-	"io/fs"
-	"strings"
-	//"github.com/kxapp-com/kxapp-common/cryptoz"
-	"howett.net/plist"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 func WriteToJsonFile(path string, obj any) error {
 	return WriteToJsonFileSec(path, obj, "")
+}
+func rc4Crypto(data []byte, key string) []byte {
+	cipher, _ := rc4.NewCipher([]byte(key))
+	dst := make([]byte, len(data))
+	cipher.XORKeyStream(dst, data)
+	return dst
 }
 func WriteToJsonFileSec(path string, obj any, password string) error {
 	data, e2 := json.Marshal(obj)
@@ -34,7 +38,7 @@ func WriteToJsonFileSec(path string, obj any, password string) error {
 		os.MkdirAll(filepath.Dir(path), fs.ModePerm)
 	}
 	if password != "" {
-		data = cryptoz.RC4Crypto(data, password)
+		data = rc4Crypto(data, password)
 	}
 	return os.WriteFile(path, data, fs.ModePerm)
 }
@@ -47,7 +51,7 @@ func ReadFromJsonFileSec[T any](path string, password string) (*T, error) {
 		return nil, e
 	}
 	if password != "" {
-		data = cryptoz.RC4Crypto(data, password)
+		data = rc4Crypto(data, password)
 	}
 	var inn T
 	e2 := json.Unmarshal(data, &inn)

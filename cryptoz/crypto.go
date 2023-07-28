@@ -11,6 +11,9 @@ import (
 	"encoding/base64"
 	"encoding/pem"
 	"fmt"
+	"github.com/kxapp-com/kxapp-common/encoderz"
+
+	//"github.com/kxapp-com/kxapp-common/utilz"
 	"io"
 	"os"
 )
@@ -101,12 +104,12 @@ func NewRSAKeyPairToFile(privateKeyPath, publicKeyPath string) error {
 	return nil
 }
 
-func EncryptRSA(publicKeyPath string, message []byte) ([]byte, error) {
+func EncryptRSA(publicKeyBytes []byte, message []byte) ([]byte, error) {
 	// 读取公钥文件
-	publicKeyBytes, err := os.ReadFile(publicKeyPath)
-	if err != nil {
-		return nil, fmt.Errorf("公钥文件读取失败: %v", err)
-	}
+	//publicKeyBytes, err := os.ReadFile(publicKeyPath)
+	//if err != nil {
+	//	return nil, fmt.Errorf("公钥文件读取失败: %v", err)
+	//}
 	publicKeyBlock, _ := pem.Decode(publicKeyBytes)
 	if publicKeyBlock == nil {
 		return nil, fmt.Errorf("公钥文件解析失败")
@@ -129,12 +132,12 @@ func EncryptRSA(publicKeyPath string, message []byte) ([]byte, error) {
 	return ciphertext, nil
 }
 
-func DecryptRSA(privateKeyPath string, ciphertext []byte) ([]byte, error) {
+func DecryptRSA(privateKeyBytes []byte, ciphertext []byte) ([]byte, error) {
 	// 读取私钥文件
-	privateKeyBytes, err := os.ReadFile(privateKeyPath)
-	if err != nil {
-		return nil, fmt.Errorf("私钥文件读取失败: %v", err)
-	}
+	//privateKeyBytes, err := os.ReadFile(privateKeyPath)
+	//if err != nil {
+	//	return nil, fmt.Errorf("私钥文件读取失败: %v", err)
+	//}
 	privateKeyBlock, _ := pem.Decode(privateKeyBytes)
 	if privateKeyBlock == nil {
 		return nil, fmt.Errorf("私钥文件解析失败")
@@ -204,4 +207,42 @@ func DecryptAES(ciphertext []byte, key []byte) ([]byte, error) {
 	stream.XORKeyStream(plainData, encryptedData)
 
 	return plainData, nil
+}
+
+/*
+*
+支持任意长度的数据非对称加密
+方法是创建一个aeskey，data用aes加密。aeskey用pubkey 做rsa加密。加密后data和key通过lengthprefixed编码方式编码
+*/
+func EncryptRSALongData(pubKeyBytes []byte, data []byte) ([]byte, error) {
+	aesKey, err := GenerateAESKey32()
+	if err != nil {
+		return nil, err
+	}
+	encryptedKey, err2 := EncryptRSA(pubKeyBytes, aesKey)
+	if err2 != nil {
+		return nil, err2
+	}
+	encryptedData, e := EncryptAES(data, aesKey)
+	if e != nil {
+		return nil, e
+	}
+	return encoderz.EncodeLengthPrefixed(encryptedKey, encryptedData), nil
+}
+
+/*
+*
+解密通过EncryptRSALongData加密的数据，data是lengthprefixed编码方式编码的
+*/
+func DecryptRSALongData(priKeyBytes []byte, data []byte) ([]byte, error) {
+	encryptedKey, e0 := encoderz.DecodeLengthPrefixed(data)
+	if e0 != nil {
+		return nil, e0
+	}
+	aesKey, e1 := DecryptRSA(priKeyBytes, encryptedKey[0])
+	if e1 != nil {
+		return nil, e1
+	}
+	plainData, e2 := DecryptAES(encryptedKey[1], aesKey)
+	return plainData, e2
 }
