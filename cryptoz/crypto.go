@@ -101,7 +101,7 @@ func NewRSAKeyPairToFile(privateKeyPath, publicKeyPath string) error {
 	return nil
 }
 
-func EncryptRSA(publicKeyPath string, message string) ([]byte, error) {
+func EncryptRSA(publicKeyPath string, message []byte) ([]byte, error) {
 	// 读取公钥文件
 	publicKeyBytes, err := os.ReadFile(publicKeyPath)
 	if err != nil {
@@ -121,7 +121,7 @@ func EncryptRSA(publicKeyPath string, message string) ([]byte, error) {
 	}
 
 	// 加密消息
-	ciphertext, err := rsa.EncryptPKCS1v15(rand.Reader, publicKey, []byte(message))
+	ciphertext, err := rsa.EncryptPKCS1v15(rand.Reader, publicKey, message)
 	if err != nil {
 		return nil, fmt.Errorf("加密失败: %v", err)
 	}
@@ -129,28 +129,28 @@ func EncryptRSA(publicKeyPath string, message string) ([]byte, error) {
 	return ciphertext, nil
 }
 
-func DecryptRSA(privateKeyPath string, ciphertext []byte) (string, error) {
+func DecryptRSA(privateKeyPath string, ciphertext []byte) ([]byte, error) {
 	// 读取私钥文件
 	privateKeyBytes, err := os.ReadFile(privateKeyPath)
 	if err != nil {
-		return "", fmt.Errorf("私钥文件读取失败: %v", err)
+		return nil, fmt.Errorf("私钥文件读取失败: %v", err)
 	}
 	privateKeyBlock, _ := pem.Decode(privateKeyBytes)
 	if privateKeyBlock == nil {
-		return "", fmt.Errorf("私钥文件解析失败")
+		return nil, fmt.Errorf("私钥文件解析失败")
 	}
 	privateKey, err := x509.ParsePKCS1PrivateKey(privateKeyBlock.Bytes)
 	if err != nil {
-		return "", fmt.Errorf("私钥解析失败: %v", err)
+		return nil, fmt.Errorf("私钥解析失败: %v", err)
 	}
 
 	// 解密消息
 	plaintext, err := rsa.DecryptPKCS1v15(nil, privateKey, ciphertext)
 	if err != nil {
-		return "", fmt.Errorf("解密失败: %v", err)
+		return nil, fmt.Errorf("解密失败: %v", err)
 	}
 
-	return string(plaintext), nil
+	return plaintext, nil
 }
 
 func GenerateAESKey32() ([]byte, error) {
