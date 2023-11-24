@@ -142,6 +142,9 @@ func ZipDir(source string, zipFilePath string) (string, error) {
 			return nil
 		}
 
+		if filepath.Base(filePath) == ".DS_Store" {
+			return nil
+		}
 		// Open the file
 		rpath, _ := filepath.Rel(source, filePath)
 		file, err := os.Open(filePath)
