@@ -222,3 +222,8 @@ func Unzip(src string, dest string) error {
 	}
 	return nil
 }
+
+// a/b/c/d.txt   return d
+func FileName(filePath string) string {
+	return strings.TrimSuffix(filepath.Base(filePath), filepath.Ext(filePath))
+}
