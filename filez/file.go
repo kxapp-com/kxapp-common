@@ -35,6 +35,9 @@ func CopyFile(src string, dst string) (err error) {
 	}
 	defer inFile.Close()
 
+	if !PathExists(filepath.Dir(dst)) {
+		os.MkdirAll(filepath.Dir(dst), os.ModePerm)
+	}
 	// 创建并打开目标文件
 	outFile, err := os.Create(dst)
 	if err != nil {
