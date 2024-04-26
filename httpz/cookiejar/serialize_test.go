@@ -1,25 +1,21 @@
 package cookiejar
 
 import (
-	"crypto/tls"
-	"github.com/kxapp-com/kxapp-common/utilz"
-
-	"net/http"
 	"testing"
 )
 
 func TestEncodeCookies(t *testing.T) {
 
-	utilz.IsInArray[string]("zhang", []string{"li"})
-	jar, _ := New(nil)
-	client := &http.Client{
-		Jar: jar,
-		Transport: &http.Transport{
-			//Proxy:           GetProxy(config.Proxy),
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-		},
-	}
-	client.Get("https://www.baidu.com")
+	//utilz.IsInArray[string]("zhang", []string{"li"})
+	//jar, _ := New(nil)
+	//client := &http.Client{
+	//	Jar: jar,
+	//	Transport: &http.Transport{
+	//		//Proxy:           GetProxy(config.Proxy),
+	//		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	//	},
+	//}
+	//client.Get("https://www.baidu.com")
 	//js1, _ := json.Marshal(jar.AllEntries())
 	//os.WriteFile("all.json", js1, 0666)
 	//b, e := jar.MarshalJSON()
