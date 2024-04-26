@@ -124,9 +124,9 @@ func FindFiles(folderPath string, ext []string) []string {
 func ZipDir(source string, zipFilePath string) (string, error) {
 	// Create a new zip archive
 	//	zipFilePath := source + ".zip"
-	zipFile, err := os.Create(zipFilePath)
-	if err != nil {
-		return "", err
+	zipFile, err1 := os.Create(zipFilePath)
+	if err1 != nil {
+		return "", err1
 	}
 	defer zipFile.Close()
 
@@ -134,48 +134,67 @@ func ZipDir(source string, zipFilePath string) (string, error) {
 	zipWriter := zip.NewWriter(zipFile)
 	defer zipWriter.Close()
 
-	// Walk through the directory and add all files to the zip archive
-	err = filepath.Walk(source, func(filePath string, fileInfo os.FileInfo, err error) error {
+	if IsDir(source) {
+		// Walk through the directory and add all files to the zip archive
+		err := filepath.Walk(source, func(filePath string, fileInfo os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+
+			// Skip directories
+			if fileInfo.IsDir() {
+				return nil
+			}
+
+			if filepath.Base(filePath) == ".DS_Store" {
+				return nil
+			}
+			// Open the file
+			rpath, _ := filepath.Rel(source, filePath)
+			file, err := os.Open(filePath)
+			if err != nil {
+				return err
+			}
+			defer file.Close()
+			rpath = filepath.ToSlash(rpath)
+			//fmt.Printf("zip file %s to %s\n",filePath,rpath)
+
+			//rpath = strings.ReplaceAll(rpath, "\\", "/")
+			// Create a new file in the zip archive
+			zipFileT, err := zipWriter.Create(rpath)
+			if err != nil {
+				return err
+			}
+
+			// Copy the file to the zip archive
+			_, err = io.Copy(zipFileT, file)
+			if err != nil {
+				return err
+			}
+
+			return nil
+		})
+
 		if err != nil {
-			return err
+			return "", err
 		}
-
-		// Skip directories
-		if fileInfo.IsDir() {
-			return nil
-		}
-
-		if filepath.Base(filePath) == ".DS_Store" {
-			return nil
-		}
+	} else {
 		// Open the file
-		rpath, _ := filepath.Rel(source, filePath)
-		file, err := os.Open(filePath)
+		file, err := os.Open(source)
 		if err != nil {
-			return err
+			return "", err
 		}
 		defer file.Close()
-		rpath = filepath.ToSlash(rpath)
-		//fmt.Printf("zip file %s to %s\n",filePath,rpath)
-
-		//rpath = strings.ReplaceAll(rpath, "\\", "/")
 		// Create a new file in the zip archive
-		zipFileT, err := zipWriter.Create(rpath)
+		zipFileT, err := zipWriter.Create(filepath.Base(source))
 		if err != nil {
-			return err
+			return "", err
 		}
-
 		// Copy the file to the zip archive
 		_, err = io.Copy(zipFileT, file)
 		if err != nil {
-			return err
+			return "", err
 		}
-
-		return nil
-	})
-
-	if err != nil {
-		return "", err
 	}
 
 	// Return the path to the zip file
