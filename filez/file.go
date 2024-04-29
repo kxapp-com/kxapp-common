@@ -437,6 +437,31 @@ func RestoreSymlinks(linksFile string, destDir string) error {
 	return nil
 }
 
+// IsZipFile 检查文件是否是zip文件
+func IsZipFile(filename string) bool {
+	if !PathExists(filename) {
+		return false
+	}
+	if IsDir(filename) {
+		return false
+	}
+	file, err := os.Open(filename)
+	if err != nil {
+		return false
+	}
+	defer file.Close()
+
+	// 读取前四个字节
+	magic := make([]byte, 4)
+	_, err = file.Read(magic)
+	if err != nil {
+		return false
+	}
+
+	// 判断是否是zip文件的魔数
+	return magic[0] == 0x50 && magic[1] == 0x4B && magic[2] == 0x03 && magic[3] == 0x04
+}
+
 // a/b/c/d.txt   return d
 func FileName(filePath string) string {
 	return strings.TrimSuffix(filepath.Base(filePath), filepath.Ext(filePath))
