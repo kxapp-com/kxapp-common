@@ -15,15 +15,53 @@ import (
 
 // PathExists is used to determine whether the path folder exists
 // True if it exists, false otherwise
+// 判断文件是否存在，如果是链接文件或文件夹，检查链接的目标是否存在
 func PathExists(path string) bool {
-	_, err := os.Stat(path)
-	if err == nil {
-		return true
-	}
-	if os.IsNotExist(err) {
+	// 获取文件信息
+	fileInfo, err := os.Lstat(path)
+	if err != nil {
+		// 如果文件不存在
+		if os.IsNotExist(err) {
+			return false
+		}
+		// 如果出现其他错误
 		return false
 	}
-	return false
+
+	// 如果是符号链接文件
+	if fileInfo.Mode()&os.ModeSymlink != 0 {
+		// 获取链接的目标
+		target, err := os.Readlink(path)
+		if err != nil {
+			// 读取链接目标出错
+			return false
+		}
+		if !filepath.IsAbs(target) {
+			target = filepath.Join(filepath.Dir(path), target)
+			//target2 := filepath.Join(path, target)
+			//if e == nil {
+			//target = target2
+			//}
+		}
+		// 检查链接的目标是否存在
+		if _, err := os.Stat(target); err != nil {
+			// 如果目标不存在
+			if os.IsNotExist(err) {
+				return false
+			}
+			// 其他错误
+			return false
+		}
+		return true // 链接的目标存在
+	}
+
+	// 如果是文件夹
+	if fileInfo.IsDir() {
+		return true
+	}
+
+	// 其他情况都认为文件存在
+	return true
 }
 func SiblingPath(path string, sibFile string) string {
 	parent := filepath.Dir(filepath.Clean(path))
@@ -410,7 +448,9 @@ func Unzip(zipFile, destDir string) error {
 
 	return nil
 }
-func RestoreSymlinks(linksFile string, destDir string) error {
+
+// recreateAll 如果是true，则会重建所有链接，如果是false，则遇到一个链接是有效存在就停止后面的链接创建
+func RestoreSymlinks(linksFile string, destDir string, recreateAll bool) error {
 	// 读取链接文件信息
 	linksJSON, err := os.ReadFile(linksFile)
 	if err != nil {
@@ -424,16 +464,18 @@ func RestoreSymlinks(linksFile string, destDir string) error {
 	}
 
 	// 恢复链接文件
-	for src, linkTarget := range linkInfos {
-		linkPath := filepath.Join(destDir, src)
-		//linkTarget := linkInfo.Target
-
-		// 创建链接文件
-		if err := os.Symlink(linkTarget, linkPath); err != nil {
-			return err
+	for linkFile, linkFileTarget := range linkInfos {
+		newName := filepath.Join(destDir, linkFile)
+		if !recreateAll && PathExists(newName) {
+			break
+		} else {
+			os.RemoveAll(newName)
+			// 创建链接文件
+			if err := os.Symlink(linkFileTarget, newName); err != nil {
+				return err
+			}
 		}
 	}
-
 	return nil
 }
 
