@@ -5,7 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/kxapp-com/kxapp-common/shellz"
 	"golang.org/x/exp/slices"
+	"runtime"
+
 	//"golang.org/x/net/html/charset"
 	"io"
 	"os"
@@ -470,9 +473,13 @@ func RestoreSymlinks(linksFile string, destDir string, recreateAll bool) error {
 			break
 		} else {
 			os.RemoveAll(newName)
-			// 创建链接文件
-			if err := os.Symlink(linkFileTarget, newName); err != nil {
-				return err
+			if runtime.GOOS == "windows" {
+				shellz.CreateLinkWindows(linkFileTarget, newName)
+			} else {
+				// 创建链接文件
+				if err := os.Symlink(linkFileTarget, newName); err != nil {
+					return err
+				}
 			}
 		}
 	}
