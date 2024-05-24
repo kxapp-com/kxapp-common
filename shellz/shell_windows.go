@@ -107,7 +107,8 @@ func CreateLinkJunkWindows(src string, dest string) error {
 	//return ShellExecuteAdmin(script)
 }
 
-func SearchRegistryKeys(baseKey registry.Key, keyPath string) (map[string]string, error) {
+func SearchRegistryKeys(keyPath string) (map[string]string, error) {
+	baseKey := registry.CURRENT_USER
 	// 打开注册表键
 	key, err := registry.OpenKey(baseKey, keyPath, registry.READ)
 	if err != nil {
