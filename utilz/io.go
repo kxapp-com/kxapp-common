@@ -8,11 +8,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/disintegration/imaging"
 	"github.com/kxapp-com/kxapp-common/filez"
 	"howett.net/plist"
-	"image"
-	"image/png"
 	"io"
 	"io/fs"
 	"os"
@@ -195,6 +192,7 @@ func PropertiesEncode(properties map[string]any) []byte {
 	return []byte(content.String())
 }
 
+/*
 func ResizeImage(inputPath string, outputPath string, width int, height int) error {
 	// Open the input file
 	inputFile, err := os.Open(inputPath)
@@ -224,3 +222,4 @@ func ResizeImage(inputPath string, outputPath string, width int, height int) err
 
 	return nil
 }
+*/
