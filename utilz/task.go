@@ -14,7 +14,7 @@ type TaskWorkCrash[T any] struct {
 	error any
 }
 
-func MultiThreadTask[T any](slice []T, numThreads int, taskFunc func(data T)) {
+func MultiThreadTask1[T any](slice []T, numThreads int, taskFunc func(data T)) {
 	if len(slice) <= 0 {
 		return
 	}
@@ -49,6 +49,58 @@ func MultiThreadTask[T any](slice []T, numThreads int, taskFunc func(data T)) {
 	}
 	// Wait for all threads to finish
 	wg.Wait()
+}
+
+// MultiThreadTask2 执行多任务处理
+func MultiThreadTask[T any](slice []T, numThreads int, taskFunc func(sliceIndex int, data T) error) []error {
+	if len(slice) == 0 {
+		return nil
+	}
+
+	if numThreads <= 0 {
+		numThreads = runtime.NumCPU()
+	}
+	if numThreads > len(slice) {
+		numThreads = len(slice)
+	}
+
+	var errors []error
+	var mu sync.Mutex
+	var wg sync.WaitGroup
+
+	chunkSize := (len(slice) + numThreads - 1) / numThreads
+	errorChan := make(chan error, len(slice))
+
+	for i := 0; i < numThreads; i++ {
+		start := i * chunkSize
+		end := start + chunkSize
+		if end > len(slice) {
+			end = len(slice)
+		}
+
+		wg.Add(1)
+		go func(start, end int) {
+			defer wg.Done()
+			for j := start; j < end; j++ {
+				if err := taskFunc(j, slice[j]); err != nil {
+					errorChan <- err
+				}
+			}
+		}(start, end)
+	}
+
+	go func() {
+		wg.Wait()
+		close(errorChan)
+	}()
+
+	for err := range errorChan {
+		mu.Lock()
+		errors = append(errors, err)
+		mu.Unlock()
+	}
+
+	return errors
 }
 
 /*
