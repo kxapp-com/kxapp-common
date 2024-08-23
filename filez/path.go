@@ -69,14 +69,20 @@ func IsDir(path string) bool {
 	}
 	return false
 }
+
+// 查找文件和子目录下的文件，不会返回文件夹路径
 func FindFiles(folderPath string, ext []string) []string {
 	var filesList []string
 	filepath.Walk(folderPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
-		if !info.IsDir() && slices.Contains(ext, filepath.Ext(path)) {
-			filesList = append(filesList, path)
+		if !info.IsDir() {
+			if len(ext) == 0 {
+				filesList = append(filesList, path)
+			} else if slices.Contains(ext, filepath.Ext(path)) {
+				filesList = append(filesList, path)
+			}
 		}
 		return nil
 	})
