@@ -7,6 +7,15 @@ import (
 	"strings"
 )
 
+func FirstExistPath(list []string) string {
+	for _, v := range list {
+		if PathExists(v) {
+			return v
+		}
+	}
+	return ""
+}
+
 // PathExists is used to determine whether the path folder exists
 // True if it exists, false otherwise
 // 判断文件是否存在，如果是链接文件或文件夹，检查链接的目标是否存在
