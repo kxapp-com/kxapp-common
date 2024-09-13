@@ -144,7 +144,7 @@ func CompressFolder(srcDir, destZip string, patchLink bool) (string, error) {
 	return destZip, nil
 }
 
-func Unzip(zipFile, destDir string) error {
+func Unzip(zipFile, destDir string,skipExistFile bool) error {
 	// 打开 zip 文件进行读取
 	r, err := zip.OpenReader(zipFile)
 	if err != nil {
@@ -156,6 +156,9 @@ func Unzip(zipFile, destDir string) error {
 	for _, file := range r.File {
 		// 解压缩文件的路径
 		filePath := filepath.Join(destDir, file.Name)
+		if PathExists(filePath) && skipExistFile {
+			continue
+		}
 
 		// 检查是否为目录
 		if file.FileInfo().IsDir() {

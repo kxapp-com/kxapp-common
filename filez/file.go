@@ -238,17 +238,26 @@ func RestoreSymlinks(linksFile string, destDir string, recreateAll bool) error {
 			break
 		} else {
 			os.RemoveAll(newName)
-			if runtime.GOOS == "windows" {
-				shellz.CreateLinkWindows(linkFileTarget, newName)
-			} else {
-				// 创建链接文件
-				if err := os.Symlink(linkFileTarget, newName); err != nil {
-					return err
-				}
-			}
+			CreateSymLink(linkFileTarget, newName)
+			//if runtime.GOOS == "windows" {
+			//	shellz.CreateLinkWindows(linkFileTarget, newName)
+			//} else {
+			//	// 创建链接文件
+			//	if err := os.Symlink(linkFileTarget, newName); err != nil {
+			//		return err
+			//	}
+			//}
 		}
 	}
 	return nil
+}
+func CreateSymLink(target ,newName string)error  {
+	if runtime.GOOS == "windows" {
+		return shellz.CreateLinkWindows(target, newName)
+	} else {
+		// 创建链接文件
+		return os.Symlink(target, newName)
+	}
 }
 
 func WriteFileAppend(name string, data []byte, perm os.FileMode) error {
