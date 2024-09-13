@@ -66,6 +66,9 @@ func CompressFolder(srcDir, destZip string, patchLink bool) (string, error) {
 		if err != nil {
 			return err
 		}
+		if zipPath == "." || zipPath == ".." || zipPath == "" {
+			return nil
+		}
 
 		zipPath = filepath.ToSlash(zipPath) // 确保路径使用斜杠'/'
 
@@ -144,7 +147,7 @@ func CompressFolder(srcDir, destZip string, patchLink bool) (string, error) {
 	return destZip, nil
 }
 
-func Unzip(zipFile, destDir string,skipExistFile bool) error {
+func Unzip(zipFile, destDir string, skipExistFile bool) error {
 	// 打开 zip 文件进行读取
 	r, err := zip.OpenReader(zipFile)
 	if err != nil {
