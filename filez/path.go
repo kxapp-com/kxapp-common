@@ -1,6 +1,8 @@
 package filez
 
 import (
+	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"slices"
@@ -114,4 +116,42 @@ func ListDir(dir string) ([]string, error) {
 		names[i] = info.Name()
 	}
 	return names, nil
+}
+
+// 匹配模式*.txt这种unix风格的文件名匹配调用filepath.Match
+func MatchesPattern(pattern, name string) bool {
+	matched, err := filepath.Match(pattern, name)
+	if err != nil {
+		fmt.Println("Error matching pattern:", err)
+		return false
+	}
+	return matched
+}
+
+// 删除符合规则的文件或文件夹
+func DeleteFilesOrDirsByPattern(rootDir, pattern string, isFile bool) error {
+	return filepath.Walk(rootDir, func(path string, info fs.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		// 根据 isFile 判断是否处理文件
+		if isFile && !info.IsDir() {
+			if MatchesPattern(pattern, info.Name()) {
+				fmt.Println("Deleting file:", path)
+				if err := os.Remove(path); err != nil {
+					return err
+				}
+			}
+		} else if !isFile && info.IsDir() {
+			if MatchesPattern(pattern, info.Name()) {
+				fmt.Println("Deleting directory:", path)
+				// 删除目录前必须先删除目录中的所有文件和子目录
+				if err := os.RemoveAll(path); err != nil {
+					return err
+				}
+			}
+		}
+		return nil
+	})
 }
