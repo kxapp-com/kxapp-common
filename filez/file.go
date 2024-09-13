@@ -89,9 +89,18 @@ func CopyDir(src, dst string, symlinkHandling int) error {
 					}
 				} else if symlinkHandling == CopyOptionFollowLink {
 					// 复制符号链接的目标
-					linkTarget, err := os.Readlink(srcPath)
-					if err != nil {
-						return err
+					//linkTarget, err := os.Readlink(srcPath)
+					//if err != nil {
+					//	return err
+					//}
+					//if !filepath.IsAbs(linkTarget) {
+					//	targetPath:=filepath.Join(src,linkTarget)
+					//	ff,ee:=filepath.EvalSymlinks(srcPath)
+					//	fmt.Println(targetPath,ff,ee)
+					//}
+					linkTarget,e:=filepath.EvalSymlinks(srcPath)
+					if e != nil {
+						return e
 					}
 					if err := CopyPath(linkTarget, dstPath, symlinkHandling); err != nil {
 						return err
@@ -120,7 +129,7 @@ func CopyPath(src, dst string, symlinkHandling int) error {
 		return CopyDir(src, dst, symlinkHandling)
 	} else {
 		if srcInfo.Mode()&os.ModeSymlink != 0 && symlinkHandling == 2 {
-			linkTarget, err := os.Readlink(src)
+			linkTarget, err := filepath.EvalSymlinks(src)
 			if err != nil {
 				return err
 			}
