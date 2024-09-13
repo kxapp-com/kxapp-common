@@ -104,7 +104,7 @@ func FileName(filePath string) string {
 }
 
 // ReadDir lists all the file or dir names in the directory.not recursively
-func ReadDir(dir string) ([]string, error) {
+func ListDir(dir string) ([]string, error) {
 	infos, err := os.ReadDir(dir)
 	if err != nil {
 		return nil, err
