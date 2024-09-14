@@ -9,6 +9,7 @@ import (
 	"golang.org/x/sys/windows/registry"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"syscall"
 	"unsafe"
 )
@@ -81,15 +82,18 @@ func getErrorMessage(code uintptr) string {
 }
 
 // 以管理员身份运行创建link
-func CreateLinkWindows(src string, dest string) error {
-	info, err := os.Stat(src)
+func CreateLinkWindows(file string, symbo string) error {
+	if !filepath.IsAbs(file) {
+		file = filepath.Join(filepath.Dir(symbo), file)
+	}
+	info, err := os.Stat(file)
 	if err != nil {
 		return err
 	}
-	script := fmt.Sprintf("mklink  %s %s", dest, src)
+	script := fmt.Sprintf("mklink  %s %s", symbo, file)
 	if info.IsDir() {
 		//script = fmt.Sprintf("mklink /c %s %s", dest, src)
-		script = fmt.Sprintf("mklink /j %s %s", dest, src)
+		script = fmt.Sprintf("mklink /j %s %s", symbo, file)
 	}
 	return ShellExecuteAdmin(script)
 }

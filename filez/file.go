@@ -98,7 +98,7 @@ func CopyDir(src, dst string, symlinkHandling int) error {
 					//	ff,ee:=filepath.EvalSymlinks(srcPath)
 					//	fmt.Println(targetPath,ff,ee)
 					//}
-					linkTarget,e:=filepath.EvalSymlinks(srcPath)
+					linkTarget, e := filepath.EvalSymlinks(srcPath)
 					if e != nil {
 						return e
 					}
@@ -232,13 +232,21 @@ func RestoreSymlinks(linksFile string, destDir string, recreateAll bool) error {
 	}
 
 	// 恢复链接文件
-	for linkFile, linkFileTarget := range linkInfos {
-		newName := filepath.Join(destDir, linkFile)
-		if !recreateAll && PathExists(newName) {
+	for symbol, file := range linkInfos {
+		symboPath := filepath.Join(destDir, symbol)
+		if !recreateAll && PathExists(symboPath) {
 			break
 		} else {
-			os.RemoveAll(newName)
-			CreateSymLink(linkFileTarget, newName)
+			os.RemoveAll(symboPath)
+			fpath := file
+			if !filepath.IsAbs(fpath) {
+				fpath = filepath.Join(filepath.Dir(symboPath), file)
+			}
+			err2 := CreateSymLink(fpath, symboPath)
+			if err2 != nil {
+				err = err2
+				fmt.Println("CreateSymLink fail with :", err2.Error())
+			}
 			//if runtime.GOOS == "windows" {
 			//	shellz.CreateLinkWindows(linkFileTarget, newName)
 			//} else {
@@ -249,14 +257,14 @@ func RestoreSymlinks(linksFile string, destDir string, recreateAll bool) error {
 			//}
 		}
 	}
-	return nil
+	return err
 }
-func CreateSymLink(target ,newName string)error  {
+func CreateSymLink(file, symbo string) error {
 	if runtime.GOOS == "windows" {
-		return shellz.CreateLinkWindows(target, newName)
+		return shellz.CreateLinkWindows(file, symbo)
 	} else {
 		// 创建链接文件
-		return os.Symlink(target, newName)
+		return os.Symlink(file, symbo)
 	}
 }
 
