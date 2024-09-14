@@ -224,13 +224,13 @@ func RestoreSymlinks(linksFile string, destDir string, recreateAll bool) error {
 	if err != nil {
 		return err
 	}
-
 	// 解析链接文件信息
 	var linkInfos map[string]string
 	if err := json.Unmarshal(linksJSON, &linkInfos); err != nil {
 		return err
 	}
 
+	var failedLinks = make(map[string]string)
 	// 恢复链接文件
 	for symbol, file := range linkInfos {
 		symboPath := filepath.Join(destDir, symbol)
@@ -244,17 +244,17 @@ func RestoreSymlinks(linksFile string, destDir string, recreateAll bool) error {
 			}
 			err2 := CreateSymLink(fpath, symboPath)
 			if err2 != nil {
-				err = err2
-				fmt.Println("CreateSymLink fail with :", err2.Error())
+				failedLinks[symboPath] = fpath
 			}
-			//if runtime.GOOS == "windows" {
-			//	shellz.CreateLinkWindows(linkFileTarget, newName)
-			//} else {
-			//	// 创建链接文件
-			//	if err := os.Symlink(linkFileTarget, newName); err != nil {
-			//		return err
-			//	}
-			//}
+		}
+	}
+	if len(failedLinks) > 0 {
+		for symbol, file := range failedLinks {
+			err2 := CreateSymLink(file, symbol)
+			if err2 != nil {
+				err = err2
+				fmt.Println("restore symbol fail with ", err2)
+			}
 		}
 	}
 	return err
