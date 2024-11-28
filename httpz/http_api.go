@@ -2,6 +2,8 @@ package httpz
 
 import (
 	"net"
+	"net/http"
+	"time"
 )
 
 /*
@@ -65,4 +67,38 @@ func GetMacAddress() string {
 		}
 	}
 	return macOK
+}
+func GetFastestURL(urls ...string) string {
+	type Result struct {
+		URL      string
+		Duration time.Duration
+	}
+	getResponseTime := func(url string, ch chan Result) {
+		start := time.Now()
+		resp, err := http.Head(url)
+		if err != nil {
+			ch <- Result{URL: url, Duration: time.Duration(0)}
+			return
+		}
+		if resp.Body != nil {
+			defer resp.Body.Close()
+		}
+		duration := time.Since(start)
+		ch <- Result{URL: url, Duration: duration}
+	}
+
+	ch := make(chan Result, len(urls))
+	for _, url := range urls {
+		go getResponseTime(url, ch) // 启动并发请求
+	}
+
+	var fastest Result
+	for i := 0; i < len(urls); i++ {
+		result := <-ch
+		if fastest.Duration == 0 || result.Duration < fastest.Duration {
+			fastest = result
+		}
+	}
+
+	return fastest.URL
 }
