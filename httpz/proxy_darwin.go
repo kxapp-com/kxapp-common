@@ -1,5 +1,11 @@
 package httpz
 
+import (
+	"fmt"
+	"os/exec"
+	"strings"
+)
+
 // GetProxy 获取 macOS 系统代理设置
 func GetProxy() (string, bool, string, error) {
 	// 获取当前活动的网络服务
